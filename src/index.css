@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-white selection:bg-primary/30;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-surface-container/60 backdrop-blur-xl border border-white/5;
+  }
+  
+  .glass-card {
+    @apply bg-surface-container-high rounded-md shadow-ambient relative overflow-hidden;
+  }
+  
+  .glass-card::before {
+    content: "";
+    @apply absolute inset-0 bg-glass-gradient pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply bg-primary-gradient text-background font-bold py-3 px-6 rounded-md 
+           transition-all duration-300 hover:shadow-neon-primary hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply bg-surface-container-high/40 backdrop-blur-md text-white font-semibold py-3 px-6 rounded-md
+           border border-white/10 transition-all duration-300 hover:bg-surface-container-high/60;
+  }
+
+  .input-field {
+    @apply bg-surface-lowest border border-white/15 rounded-md px-4 py-3 text-white
+           focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all;
+  }
+
+  .label-architectural {
+    @apply text-[10px] font-bold uppercase tracking-[0.1em] text-white/50 mb-1 block;
+  }
+}
+
+/* Custom Scrollbar for Obsidian feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-bright/50 rounded-full hover:bg-surface-bright transition-colors;
+}
