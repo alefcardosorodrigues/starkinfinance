@@ -70,8 +70,9 @@ export default function Dashboard() {
   const { data: incomes = [] } = useQuery({
     queryKey: ['entries', selectedMonth, selectedYear],
     queryFn: async () => {
-      const startDate = new Date(selectedYear, selectedMonth, 1).toISOString()
-      const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString()
+      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01T00:00:00`
+      const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
+      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59`
       
       const { data, error } = await supabase
         .from('entries')
@@ -101,8 +102,9 @@ export default function Dashboard() {
   const { data: variableExpenses = [] } = useQuery({
     queryKey: ['variable_expenses', selectedMonth, selectedYear],
     queryFn: async () => {
-      const startDate = new Date(selectedYear, selectedMonth, 1).toISOString()
-      const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString()
+      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01T00:00:00`
+      const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
+      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59`
       
       const { data, error } = await supabase
         .from('variable_expenses')
@@ -211,6 +213,10 @@ export default function Dashboard() {
     })
   }, [categories, fixedExpenses, variableExpenses, installments, budgets])
 
+  const filteredCategoryStates = useMemo(() => {
+    return categoryStates.filter(cat => cat.spent > 0)
+  }, [categoryStates])
+
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -316,7 +322,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-white/40">
-            {categories.length} CATEGORIAS ATIVAS
+            {filteredCategoryStates.length} CATEGORIAS ATIVAS
           </div>
         </div>
 
@@ -337,11 +343,10 @@ export default function Dashboard() {
                       <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Valor Esperado</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Valor Gasto</th>
                       <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Restam</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] w-0">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {categoryStates.map((cat, idx) => {
+                    {filteredCategoryStates.map((cat, idx) => {
                       const isOverBudget = cat.expected > 0 && cat.spent > cat.expected
                       const isNearingBudget = cat.expected > 0 && cat.spent > (cat.expected * 0.8) && !isOverBudget
                       const progress = cat.expected > 0 ? Math.min((cat.spent / cat.expected) * 100, 100) : 0
@@ -431,9 +436,6 @@ export default function Dashboard() {
                               {isOverBudget && <AlertCircle className="w-3 h-3" />}
                             </div>
                           </td>
-
-                          <td className="px-6 py-5 text-right">
-                          </td>
                         </motion.tr>
                       )
                     })}
@@ -444,7 +446,7 @@ export default function Dashboard() {
           )}
         </AnimatePresence>
           
-          {categoryStates.length === 0 && (
+          {filteredCategoryStates.length === 0 && (
             <div className="p-20 text-center">
               <p className="text-white/20 font-bold uppercase tracking-widest">Nenhuma categoria cadastrada</p>
             </div>

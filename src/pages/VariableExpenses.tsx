@@ -66,7 +66,10 @@ export default function VariableExpenses() {
   // Form State
   const [name, setName] = useState('')
   const [value, setValue] = useState('R$ 0,00')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  })
   const [categoryId, setCategoryId] = useState('')
   const [obs, setObs] = useState('')
 
@@ -88,14 +91,15 @@ export default function VariableExpenses() {
     queryKey: ['variable-expenses', selectedMonth, selectedYear],
     queryFn: async () => {
       // Filtrar por data no intervalo do mês selecionado
-      const firstDay = new Date(selectedYear, selectedMonth, 1).toISOString()
-      const lastDay = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString()
+      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
+      const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate()
+      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
 
       const { data, error } = await supabase
         .from('variable_expenses')
         .select('*, categories(id, name, color_hex)')
-        .gte('date', firstDay.split('T')[0])
-        .lte('date', lastDay.split('T')[0])
+        .gte('date', startDate)
+        .lte('date', endDate)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false })
         
@@ -164,9 +168,13 @@ export default function VariableExpenses() {
     setEditingExpense(null)
     setName('')
     setValue('R$ 0,00')
-    setDate(new Date().toISOString().split('T')[0])
-    setCategoryId('')
-    setObs('')
+    const now = new Date()
+    const isCurrentContext = now.getMonth() === selectedMonth && now.getFullYear() === selectedYear
+    if (isCurrentContext) {
+      setDate(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`)
+    } else {
+      setDate(`${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`)
+    }
     setIsModalOpen(false)
   }
 
