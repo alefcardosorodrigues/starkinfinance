@@ -54,14 +54,16 @@ export default function Income() {
   const [date, setDate] = useState(() => {
     const now = new Date()
     const isCurrentContext = now.getMonth() === selectedMonth && now.getFullYear() === selectedYear
-    return isCurrentContext 
-      ? now.toISOString().split('T')[0] 
-      : new Date(selectedYear, selectedMonth, 1).toISOString().split('T')[0]
+    if (isCurrentContext) {
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    }
+    return `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
   })
 
   // Start/End of month for filtering
-  const startDate = new Date(selectedYear, selectedMonth, 1).toISOString().split('T')[0]
-  const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString().split('T')[0]
+  const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
+  const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
+  const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
   const { data: entries, isLoading } = useQuery({
     queryKey: ['entries', selectedMonth, selectedYear],
@@ -93,6 +95,10 @@ export default function Income() {
       queryClient.invalidateQueries({ queryKey: ['entries'] })
       handleCloseModal()
     },
+    onError: (error) => {
+      console.error('Erro ao adicionar entrada:', error)
+      alert('Erro ao salvar nova entrada. Verifique sua conexão ou permissões.')
+    }
   })
 
   const updateMutation = useMutation({
@@ -104,6 +110,9 @@ export default function Income() {
         .eq('id', editingEntry.id)
         .select()
       if (error) throw error
+      if (!data || data.length === 0) {
+        throw new Error('Permissão negada ou registro não encontrado.')
+      }
       return data
     },
     onSuccess: () => {
@@ -111,6 +120,10 @@ export default function Income() {
       queryClient.invalidateQueries({ queryKey: ['entries'] })
       handleCloseModal()
     },
+    onError: (error) => {
+      console.error('Erro ao atualizar entrada:', error)
+      alert('Erro ao salvar alterações. Verifique sua conexão ou permissões.')
+    }
   })
 
   const deleteMutation = useMutation({
@@ -121,12 +134,16 @@ export default function Income() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entries'] })
     },
+    onError: (error) => {
+      console.error('Erro ao deletar entrada:', error)
+      alert('Erro ao excluir entrada. Tente novamente mais tarde.')
+    }
   })
 
   const handleEdit = (entry: Entry) => {
     setEditingEntry(entry)
     setDescription(entry.description)
-    setAmount(formatBRL(entry.amount))
+    setAmount(formatBRL(Number(entry.amount)))
     setType(entry.type)
     setDate(entry.date)
     setIsModalOpen(true)
@@ -140,9 +157,11 @@ export default function Income() {
     // Reset date to context default
     const now = new Date()
     const isCurrentContext = now.getMonth() === selectedMonth && now.getFullYear() === selectedYear
-    setDate(isCurrentContext 
-      ? now.toISOString().split('T')[0] 
-      : new Date(selectedYear, selectedMonth, 1).toISOString().split('T')[0])
+    if (isCurrentContext) {
+      setDate(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`)
+    } else {
+      setDate(`${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`)
+    }
     setIsModalOpen(false)
   }
 
@@ -337,7 +356,6 @@ export default function Income() {
                       className="input-field w-full h-[47.5px] disabled:opacity-50 disabled:cursor-not-allowed"
                       value={type}
                       onChange={e => setType(e.target.value as EntryType)}
-                      disabled={!!editingEntry}
                     >
                       <option value="Salário">Salário</option>
                       <option value="Renda Extra">Renda Extra</option>
@@ -346,15 +364,13 @@ export default function Income() {
                   </div>
                 </div>
 
-                {!editingEntry && (
-                  <Input 
-                    label="Data do Recebimento" 
-                    type="date"
-                    required
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                  />
-                )}
+                <Input 
+                  label="Data do Recebimento" 
+                  type="date"
+                  required
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                />
 
                 <div className="flex gap-4 pt-4">
                   <Button 
