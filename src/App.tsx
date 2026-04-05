@@ -3,10 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { Session } from '@supabase/supabase-js'
 import Login from '@/pages/Login'
+import Dashboard from '@/pages/Dashboard'
 import Income from '@/pages/Income'
 import FixedExpenses from '@/pages/FixedExpenses'
 import Installments from '@/pages/Installments'
 import Categories from '@/pages/Categories'
+import VariableExpenses from '@/pages/VariableExpenses'
 import Navigation from '@/components/layout/Navigation'
 
 function App() {
@@ -50,11 +52,14 @@ function App() {
       <Navigation />
       <main className="flex-1 md:ml-64 min-h-screen">
         <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/income" element={<Income />} />
+          <Route path="/variables" element={<VariableExpenses />} />
           <Route path="/fixed-expenses" element={<FixedExpenses />} />
           <Route path="/installments" element={<Installments />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="*" element={<Navigate to="/income" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
     </div>

@@ -11,14 +11,18 @@ import {
   Calendar,
   CheckSquare,
   CreditCard,
-  User
+  User,
+  Receipt,
+  LayoutDashboard
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useMonth } from '@/contexts/MonthContext'
 
 const navItems = [
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Entradas', icon: TrendingUp, href: '/income' },
+  { label: 'Gastos Variáveis', icon: Receipt, href: '/variables' },
   { label: 'Gastos Fixos', icon: CheckSquare, href: '/fixed-expenses' },
   { label: 'Parcelas', icon: CreditCard, href: '/installments' },
   { label: 'Categorias', icon: Tags, href: '/categories' },
