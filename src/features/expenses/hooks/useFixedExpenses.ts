@@ -126,7 +126,7 @@ export function useFixedExpenses(selectedMonth: number, selectedYear: number) {
 
   return {
     expenses: expensesQuery.data || [],
-    isLoading: expensesQuery.isLoading,
+    isLoading: expensesQuery.isLoading || expensesQuery.isFetching,
     categories: categoriesQuery.data || [],
     addExpense,
     updateExpense,

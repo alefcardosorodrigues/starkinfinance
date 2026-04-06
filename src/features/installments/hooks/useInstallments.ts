@@ -129,7 +129,7 @@ export function useInstallments(selectedMonth: number, selectedYear: number) {
 
   return {
     installments: installmentsQuery.data || [],
-    isLoading: installmentsQuery.isLoading,
+    isLoading: installmentsQuery.isLoading || installmentsQuery.isFetching,
     categories: categoriesQuery.data || [],
     addInstallment,
     deleteInstallment,

@@ -69,11 +69,11 @@ export default function Dashboard() {
 
   // 2. Fetch Incomes
   const { data: incomes = [], isLoading: loadInc } = useQuery({
-    queryKey: ['entries', selectedMonth, selectedYear],
+    queryKey: ['dashboard-entries', selectedMonth, selectedYear],
     queryFn: async () => {
-      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01T00:00:00`
+      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
       const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
-      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59`
+      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
       
       const { data, error } = await supabase
         .from('entries')
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
   // 3. Fetch Fixed Expenses
   const { data: fixedExpenses = [], isLoading: loadFix } = useQuery({
-    queryKey: ['fixed_expenses', selectedMonth, selectedYear],
+    queryKey: ['dashboard-fixed-expenses', selectedMonth, selectedYear],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fixed_expenses')
@@ -101,11 +101,11 @@ export default function Dashboard() {
 
   // 4. Fetch Variable Expenses
   const { data: variableExpenses = [], isLoading: loadVar } = useQuery({
-    queryKey: ['variable_expenses', selectedMonth, selectedYear],
+    queryKey: ['dashboard-variable-expenses', selectedMonth, selectedYear],
     queryFn: async () => {
-      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01T00:00:00`
+      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
       const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
-      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59`
+      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
       
       const { data, error } = await supabase
         .from('variable_expenses')
@@ -119,7 +119,7 @@ export default function Dashboard() {
 
   // 5. Fetch Installments
   const { data: installments = [], isLoading: loadInst } = useQuery({
-    queryKey: ['installments', selectedMonth, selectedYear],
+    queryKey: ['dashboard-installments', selectedMonth, selectedYear],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('installments')
