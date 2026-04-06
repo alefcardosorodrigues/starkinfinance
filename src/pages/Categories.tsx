@@ -18,14 +18,22 @@ interface Category {
 }
 
 const COLORS = [
-  '#adc6ff', // Primary Blue
-  '#4edea3', // Secondary Green
-  '#ffb3b6', // Tertiary Ruby
-  '#f59e0b', // Amber
-  '#8b5cf6', // Violet
-  '#ec4899', // Pink
   '#06b6d4', // Cyan
-  '#ffffff', // White
+  '#0ea5e9', // Sky Blue
+  '#3b82f6', // Blue
+  '#818cf8', // Indigo
+  '#4edea3', // Neon Green
+  '#10b981', // Emerald
+  '#14b8a6', // Teal
+  '#84cc16', // Lime
+  '#a855f7', // Purple
+  '#d946ef', // Fuchsia
+  '#ec4899', // Pink
+  '#f43f5e', // Rose
+  '#ef4444', // Red
+  '#f97316', // Orange
+  '#f59e0b', // Amber
+  '#eab308', // Yellow
 ]
 
 export default function Categories() {

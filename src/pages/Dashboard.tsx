@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 interface CategoryBudget {
   category_id: string
@@ -54,12 +55,12 @@ export default function Dashboard() {
   const [isTableExpanded, setIsTableExpanded] = useState(true)
 
   // 1. Fetch Categories
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [], isLoading: loadCats } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name, color_hex')
         .order('name')
       if (error) throw error
       return data
@@ -67,7 +68,7 @@ export default function Dashboard() {
   })
 
   // 2. Fetch Incomes
-  const { data: incomes = [] } = useQuery({
+  const { data: incomes = [], isLoading: loadInc } = useQuery({
     queryKey: ['entries', selectedMonth, selectedYear],
     queryFn: async () => {
       const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01T00:00:00`
@@ -76,7 +77,7 @@ export default function Dashboard() {
       
       const { data, error } = await supabase
         .from('entries')
-        .select('*')
+        .select('id, amount, date')
         .gte('date', startDate)
         .lte('date', endDate)
       if (error) throw error
@@ -85,12 +86,12 @@ export default function Dashboard() {
   })
 
   // 3. Fetch Fixed Expenses
-  const { data: fixedExpenses = [] } = useQuery({
+  const { data: fixedExpenses = [], isLoading: loadFix } = useQuery({
     queryKey: ['fixed_expenses', selectedMonth, selectedYear],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fixed_expenses')
-        .select('*')
+        .select('id, amount, category_id, month, year')
         .eq('month', selectedMonth)
         .eq('year', selectedYear)
       if (error) throw error
@@ -99,7 +100,7 @@ export default function Dashboard() {
   })
 
   // 4. Fetch Variable Expenses
-  const { data: variableExpenses = [] } = useQuery({
+  const { data: variableExpenses = [], isLoading: loadVar } = useQuery({
     queryKey: ['variable_expenses', selectedMonth, selectedYear],
     queryFn: async () => {
       const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01T00:00:00`
@@ -108,7 +109,7 @@ export default function Dashboard() {
       
       const { data, error } = await supabase
         .from('variable_expenses')
-        .select('*')
+        .select('id, value, category_id, date')
         .gte('date', startDate)
         .lte('date', endDate)
       if (error) throw error
@@ -117,12 +118,12 @@ export default function Dashboard() {
   })
 
   // 5. Fetch Installments
-  const { data: installments = [] } = useQuery({
+  const { data: installments = [], isLoading: loadInst } = useQuery({
     queryKey: ['installments', selectedMonth, selectedYear],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('installments')
-        .select('*')
+        .select('id, amount, category_id, month, year')
         .eq('month', selectedMonth)
         .eq('year', selectedYear)
       if (error) throw error
@@ -131,12 +132,12 @@ export default function Dashboard() {
   })
 
   // 6. Fetch Budgets
-  const { data: budgets = [] } = useQuery({
+  const { data: budgets = [], isLoading: loadBdgt } = useQuery({
     queryKey: ['category_budgets', selectedMonth, selectedYear],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('category_budgets')
-        .select('*')
+        .select('id, category_id, amount, month, year')
         .eq('month', selectedMonth)
         .eq('year', selectedYear)
       if (error) throw error
@@ -167,6 +168,9 @@ export default function Dashboard() {
       setEditingBudget(null)
     }
   })
+
+  // Loading state consolidado
+  const isLoading = loadCats || loadInc || loadFix || loadVar || loadInst || loadBdgt
 
   // Consolidate Totals
   const totals = useMemo(() => {
@@ -247,9 +251,9 @@ export default function Dashboard() {
         <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-lg border border-white/5 shadow-inner">
           <div className={clsx(
             "px-4 py-2 rounded-md font-bold text-sm tracking-widest uppercase transition-all duration-500",
-            totals.balance >= 0 ? "bg-primary/20 text-primary shadow-neon-primary" : "bg-tertiary/20 text-tertiary shadow-neon-tertiary"
+            isLoading ? "bg-white/5 text-transparent" : (totals.balance >= 0 ? "bg-primary/20 text-primary shadow-neon-primary" : "bg-tertiary/20 text-tertiary shadow-neon-tertiary")
           )}>
-            SALDO DISPONÍVEL: {formatCurrency(totals.balance)}
+            {isLoading ? <Skeleton className="h-5 w-40" /> : `SALDO DISPONÍVEL: ${formatCurrency(totals.balance)}`}
           </div>
         </div>
       </header>
@@ -284,26 +288,40 @@ export default function Dashboard() {
               </div>
             </div>
             <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">{item.label}</p>
-            <h3 className="text-xl font-extrabold tracking-tight truncate">
-              {formatCurrency(item.value)}
-            </h3>
+            {isLoading ? (
+              <Skeleton className="h-7 w-32 mt-1" />
+            ) : (
+              <h3 className="text-xl font-extrabold tracking-tight truncate">
+                {formatCurrency(item.value)}
+              </h3>
+            )}
           </motion.div>
         ))}
       </div>
 
       {/* Charts Dual Track */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-        <ComparisonChart 
-          income={totals.income} 
-          expenses={totals.totalExpenses} 
-        />
-        <ExpensesPieChart 
-          data={categoryStates.map(cat => ({
-            name: cat.name,
-            value: cat.spent,
-            color: cat.color
-          }))}
-        />
+        <div className="relative">
+          {isLoading && <Skeleton className="absolute inset-x-0 h-80 rounded-xl" />}
+          <div className={isLoading ? 'opacity-0' : ''}>
+            <ComparisonChart 
+              income={totals.income} 
+              expenses={totals.totalExpenses} 
+            />
+          </div>
+        </div>
+        <div className="relative">
+          {isLoading && <Skeleton className="absolute inset-x-0 h-80 rounded-xl" />}
+          <div className={isLoading ? 'opacity-0' : ''}>
+            <ExpensesPieChart 
+              data={categoryStates.map(cat => ({
+                name: cat.name,
+                value: cat.spent,
+                color: cat.color_hex
+              }))}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Budget Table */}
@@ -346,7 +364,16 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {filteredCategoryStates.map((cat, idx) => {
+                    {isLoading ? (
+                      Array.from({ length: 4 }).map((_, i) => (
+                        <tr key={i} className="group hover:bg-white/[0.02]">
+                          <td className="px-6 py-5 cursor-default"><Skeleton className="h-6 w-32" /></td>
+                          <td className="px-6 py-5 cursor-default"><Skeleton className="h-6 w-24" /></td>
+                          <td className="px-6 py-5 cursor-default"><Skeleton className="h-6 w-24" /></td>
+                          <td className="px-6 py-5 cursor-default"><Skeleton className="h-6 w-24 rounded-full" /></td>
+                        </tr>
+                      ))
+                    ) : filteredCategoryStates.map((cat, idx) => {
                       const isOverBudget = cat.expected > 0 && cat.spent > cat.expected
                       const isNearingBudget = cat.expected > 0 && cat.spent > (cat.expected * 0.8) && !isOverBudget
                       const progress = cat.expected > 0 ? Math.min((cat.spent / cat.expected) * 100, 100) : 0
@@ -363,7 +390,7 @@ export default function Dashboard() {
                             <div className="flex items-center gap-3">
                               <div 
                                 className="w-1 h-8 rounded-full" 
-                                style={{ backgroundColor: cat.color }} 
+                                style={{ backgroundColor: cat.color_hex }} 
                               />
                               <div>
                                 <p className="text-sm font-bold tracking-wide">{cat.name}</p>
