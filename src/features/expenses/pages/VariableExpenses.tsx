@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { useVariableExpenses } from '../hooks/useVariableExpenses'
+import type { VariableExpense, Category } from '../types'
+import { Button } from '@/components/elements/Button'
+import { Input } from '@/components/elements/Input'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { 
@@ -23,21 +23,7 @@ import { useMonth } from '@/contexts/MonthContext'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-type Category = {
-  id: string
-  name: string
-  color_hex: string
-}
 
-type VariableExpense = {
-  id: string
-  date: string
-  name: string
-  value: number
-  category_id: string
-  obs: string | null
-  categories?: Category
-}
 
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -58,8 +44,17 @@ const parseCurrencyToNumber = (value: string) => {
 }
 
 export default function VariableExpenses() {
-  const queryClient = useQueryClient()
   const { selectedMonth, selectedYear } = useMonth()
+  const { 
+    expenses, 
+    isLoading, 
+    categories, 
+    addExpense, 
+    updateExpense, 
+    deleteExpense 
+  } = useVariableExpenses(selectedMonth, selectedYear)
+
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<VariableExpense | null>(null)
   
@@ -72,87 +67,6 @@ export default function VariableExpenses() {
   })
   const [categoryId, setCategoryId] = useState('')
   const [obs, setObs] = useState('')
-
-  // Fetch Categories
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, color_hex')
-        .order('name')
-      if (error) throw error
-      return data as Category[]
-    }
-  })
-
-  // Fetch Variable Expenses for current month/year
-  const { data: expenses, isLoading } = useQuery({
-    queryKey: ['variable-expenses', selectedMonth, selectedYear],
-    queryFn: async () => {
-      // Filtrar por data no intervalo do mês selecionado
-      const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
-      const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate()
-      const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
-
-      const { data, error } = await supabase
-        .from('variable_expenses')
-        .select('*, categories(id, name, color_hex)')
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false })
-        
-      if (error) throw error
-      return data as VariableExpense[]
-    },
-  })
-
-  const addMutation = useMutation({
-    mutationFn: async (newExpense: Partial<VariableExpense>) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Não autenticado')
-      
-      const { data, error } = await supabase
-        .from('variable_expenses')
-        .insert([{ ...newExpense, user_id: user.id }])
-        .select()
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['variable-expenses'] })
-      handleCloseModal()
-    },
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async (updated: Partial<VariableExpense>) => {
-      if (!editingExpense) return
-      const { error } = await supabase
-        .from('variable_expenses')
-        .update(updated)
-        .eq('id', editingExpense.id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['variable-expenses'] })
-      handleCloseModal()
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('variable_expenses')
-        .delete()
-        .eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['variable-expenses'] })
-    },
-  })
 
   const handleEdit = (expense: VariableExpense) => {
     setEditingExpense(expense)
@@ -178,7 +92,7 @@ export default function VariableExpenses() {
     setIsModalOpen(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const payload = {
       name,
@@ -188,15 +102,24 @@ export default function VariableExpenses() {
       obs: obs || null
     }
 
-    if (editingExpense) {
-      updateMutation.mutate(payload)
-    } else {
-      addMutation.mutate(payload)
+    try {
+      if (editingExpense) {
+        await updateExpense.mutateAsync({ id: editingExpense.id, updates: payload })
+      } else {
+        await addExpense.mutateAsync(payload)
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error(error)
     }
   }
 
-  const totalAmount = useMemo(() => {
-    return expenses?.reduce((sum, e) => sum + Number(e.value), 0) || 0
+  const stats = useMemo(() => {
+    if (!expenses) return { total: 0, count: 0, max: 0 }
+    const total = expenses.reduce((sum, e) => sum + Number(e.value), 0)
+    const count = expenses.length
+    const max = expenses.reduce((maxVal, e) => Math.max(maxVal, Number(e.value)), 0)
+    return { total, count, max }
   }, [expenses])
 
   return (
@@ -207,29 +130,34 @@ export default function VariableExpenses() {
         <div className="absolute bottom-[20%] left-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
       </div>
 
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Receipt className="text-secondary w-5 h-5 shadow-neon-secondary" />
+            <Sparkles className="text-secondary w-5 h-5 shadow-neon-secondary" />
             <span className="label-architectural mb-0">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight italic">Gastos <span className="text-secondary">Variáveis</span></h1>
-        </div>
-
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="glass-card px-6 py-3 bg-surface-container-low border-white/5 flex flex-col items-end min-w-[200px]">
-            <span className="label-architectural text-white/30 text-[10px]">Total do Período</span>
-            <span className="text-2xl font-black text-secondary tracking-tighter">{formatBRL(totalAmount)}</span>
-          </div>
-          <Button 
-            className="h-[52px] px-8 bg-secondary-gradient shadow-neon-secondary text-background font-black"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            LANÇAR GASTO
-          </Button>
+          <h1 className="text-4xl font-extrabold tracking-tight">Gastos <span className="text-secondary">Variáveis</span></h1>
         </div>
       </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-6 bg-surface-container-low border-white/5"
+        >
+          <span className="label-architectural text-white/40 block mb-2">Total do Período</span>
+          <div className="text-3xl font-extrabold">{formatBRL(stats.total)}</div>
+        </motion.div>
+
+        <Button 
+          className="h-full min-h-[100px] text-lg font-extrabold shadow-neon-primary" 
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Plus className="w-6 h-6 mr-2" />
+          Lançar Gasto
+        </Button>
+      </div>
 
       {/* Main Content Area */}
       <div className="relative z-10 max-w-6xl mx-auto">
@@ -323,7 +251,7 @@ export default function VariableExpenses() {
                         <Pencil className="w-5 h-5" />
                       </button>
                       <button 
-                        onClick={() => deleteMutation.mutate(expense.id)}
+                        onClick={() => deleteExpense.mutate(expense.id)}
                         className="p-3 rounded-xl hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all active:scale-95"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -359,7 +287,7 @@ export default function VariableExpenses() {
 
               <div className="flex items-center justify-between mb-10">
                 <div>
-                  <h3 className="text-3xl font-black tracking-tighter mb-1 italic">
+                  <h3 className="text-3xl font-black tracking-tighter mb-1">
                     {editingExpense ? 'Editar' : 'Novo'} <span className="text-secondary">Gasto</span>
                   </h3>
                   <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">One-Tap Entry System</p>
@@ -443,7 +371,7 @@ export default function VariableExpenses() {
                   <Button 
                     type="submit" 
                     className="flex-[2] h-14 bg-secondary-gradient shadow-neon-secondary text-background font-black text-lg" 
-                    isLoading={addMutation.isPending || updateMutation.isPending}
+                    isLoading={addExpense.isPending || updateExpense.isPending}
                   >
                     {editingExpense ? 'ATUALIZAR REGISTRO' : 'CONFIRMAR GASTO'}
                   </Button>

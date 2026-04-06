@@ -4,13 +4,13 @@ import { supabase } from '@/lib/supabase'
 import { Session } from '@supabase/supabase-js'
 import { lazy, Suspense } from 'react'
 
-const Login = lazy(() => import('@/pages/Login'))
-const Dashboard = lazy(() => import('@/pages/Dashboard'))
-const Income = lazy(() => import('@/pages/Income'))
-const FixedExpenses = lazy(() => import('@/pages/FixedExpenses'))
-const Installments = lazy(() => import('@/pages/Installments'))
-const Categories = lazy(() => import('@/pages/Categories'))
-const VariableExpenses = lazy(() => import('@/pages/VariableExpenses'))
+const Login = lazy(() => import('@/features/auth/pages/Login'))
+const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'))
+const Income = lazy(() => import('@/features/income/pages/Income'))
+const FixedExpenses = lazy(() => import('@/features/expenses/pages/FixedExpenses'))
+const Installments = lazy(() => import('@/features/installments/pages/Installments'))
+const Categories = lazy(() => import('@/features/categories/pages/Categories'))
+const VariableExpenses = lazy(() => import('@/features/expenses/pages/VariableExpenses'))
 import Navigation from '@/components/layout/Navigation'
 
 function App() {
