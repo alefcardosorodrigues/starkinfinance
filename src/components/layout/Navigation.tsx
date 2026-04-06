@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { clsx } from 'clsx'
 import { 
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/main'
 import { useMonth } from '@/contexts/MonthContext'
 
 const navItems = [
@@ -35,6 +36,7 @@ const MONTHS = [
 
 export default function Navigation() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { selectedMonth, selectedYear, setSelectedMonth, prevYear, nextYear } = useMonth()
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -53,7 +55,11 @@ export default function Navigation() {
     }
   })
 
-  const handleLogout = () => supabase.auth.signOut()
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    queryClient.clear()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <nav className="fixed left-0 top-0 h-screen w-20 md:w-64 glass border-r border-white/5 z-50 flex flex-col p-4">

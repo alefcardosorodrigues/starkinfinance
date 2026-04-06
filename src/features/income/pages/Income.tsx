@@ -126,29 +126,36 @@ export default function Income() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
         <div className="lg:col-span-1 space-y-8">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="glass-card p-8 bg-secondary-gradient border-none"
-          >
-            <div className="flex justify-between items-start mb-6">
-              <div className="p-3 bg-white/20 rounded-md">
-                <TrendingUp className="text-white w-6 h-6" />
+          {isLoading ? (
+            <div className="animate-pulse">
+              <div className="h-40 bg-surface-container-low rounded-2xl" />
+            </div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="glass-card p-8 bg-secondary-gradient border-none"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-white/20 rounded-md">
+                  <TrendingUp className="text-white w-6 h-6" />
+                </div>
+                <span className="label-architectural text-white/60">Total Mensal</span>
               </div>
-              <span className="label-architectural text-white/60">Total Mensal</span>
-            </div>
-            <div className="text-5xl font-extrabold tracking-tight mb-2">
-              <span className="text-white/60 text-2xl font-medium mr-2">R$</span>
-              {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </div>
-            <p className="text-white/80 text-sm font-medium tracking-wide font-mono">
-              PERÍODO: {selectedMonth + 1}/{selectedYear}
-            </p>
-          </motion.div>
+              <div className="text-5xl font-extrabold tracking-tight mb-2">
+                <span className="text-white/60 text-2xl font-medium mr-2">R$</span>
+                {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-white/80 text-sm font-medium tracking-wide font-mono">
+                PERÍODO: {selectedMonth + 1}/{selectedYear}
+              </p>
+            </motion.div>
+          )}
 
           <Button 
             className="w-full h-16 text-lg" 
             onClick={() => setIsModalOpen(true)}
+            disabled={isLoading}
           >
             <Plus className="w-6 h-6 mr-2" />
             Nova Entrada
