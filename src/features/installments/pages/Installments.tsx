@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { useInstallments } from '../hooks/useInstallments'
+import type { Installment, Category } from '../types'
+import { Button } from '@/components/elements/Button'
+import { Input } from '@/components/elements/Input'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { 
@@ -20,25 +20,7 @@ import {
 } from 'lucide-react'
 import { useMonth } from '@/contexts/MonthContext'
 
-type Category = {
-  id: string
-  name: string
-  color_hex: string
-}
 
-type Installment = {
-  id: string
-  name: string
-  amount: number
-  total_installments: number
-  current_installment: number
-  is_paid: boolean
-  category_id: string | null
-  month: number
-  year: number
-  group_id: string
-  categories?: Category
-}
 
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -59,8 +41,16 @@ const parseCurrencyToNumber = (value: string) => {
 }
 
 export default function Installments() {
-  const queryClient = useQueryClient()
   const { selectedMonth, selectedYear } = useMonth()
+  const { 
+    installments, 
+    isLoading, 
+    categories, 
+    addInstallment, 
+    deleteInstallment, 
+    togglePaid 
+  } = useInstallments(selectedMonth, selectedYear)
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingInstallment, setEditingInstallment] = useState<Installment | null>(null)
   
@@ -71,116 +61,6 @@ export default function Installments() {
   const [currentInstallment, setCurrentInstallment] = useState<number>(1)
   const [categoryId, setCategoryId] = useState('')
   const [isPaid, setIsPaid] = useState(false)
-
-  // Fetch Categories
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, color_hex')
-        .order('name')
-      if (error) throw error
-      return data as Category[]
-    }
-  })
-
-  // Fetch Installments for current month/year
-  const { data: installments, isLoading } = useQuery({
-    queryKey: ['installments', selectedMonth, selectedYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('installments')
-        .select('*, categories(id, name, color_hex)')
-        .eq('month', selectedMonth)
-        .eq('year', selectedYear)
-        .order('name', { ascending: true })
-      if (error) throw error
-      return data as Installment[]
-    },
-  })
-
-  const addMutation = useMutation({
-    mutationFn: async (newInstallment: Partial<Installment>) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Não autenticado')
-      
-      const groupId = crypto.randomUUID()
-      const inserts = []
-      
-      // Calcular quantas parcelas restam a partir da "atual" informada
-      const remaining = (newInstallment.total_installments || 1) - (newInstallment.current_installment || 1) + 1
-      
-      let currMonth = selectedMonth
-      let currYear = selectedYear
-      let currInst = newInstallment.current_installment || 1
-
-      for (let i = 0; i < remaining; i++) {
-        inserts.push({
-          name: newInstallment.name,
-          amount: newInstallment.amount,
-          total_installments: newInstallment.total_installments,
-          current_installment: currInst,
-          category_id: newInstallment.category_id,
-          user_id: user.id,
-          month: currMonth,
-          year: currYear,
-          group_id: groupId,
-          is_paid: i === 0 ? isPaid : false // Só marca paga a primeira se o user marcou no form
-        })
-        
-        currInst++
-        currMonth++
-        if (currMonth > 11) {
-          currMonth = 0
-          currYear++
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('installments')
-        .insert(inserts)
-        .select()
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['installments'] })
-      handleCloseModal()
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: async (installment: Installment) => {
-      // Deletar o GRUPO INTEIRO (passado e futuro) ou apenas futuro? 
-      // User pediu "remover para os meses pra frente" em gastos fixos. 
-      // Mas em parcelamento, geralmente se remove a compra toda.
-      // Vou deletar deste mês para frente para manter histórico.
-      const { error } = await supabase
-        .from('installments')
-        .delete()
-        .eq('group_id', installment.group_id)
-        .or(`year.gt.${selectedYear},and(year.eq.${selectedYear},month.gte.${selectedMonth})`)
-      
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['installments'] })
-    },
-  })
-
-  const togglePaidMutation = useMutation({
-    mutationFn: async ({ id, is_paid }: { id: string, is_paid: boolean }) => {
-      const { error } = await supabase
-        .from('installments')
-        .update({ is_paid })
-        .eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['installments'] })
-    },
-  })
 
   const handleCloseModal = () => {
     setEditingInstallment(null)
@@ -193,17 +73,21 @@ export default function Installments() {
     setIsModalOpen(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const payload = {
-      name,
-      amount: parseCurrencyToNumber(amount),
-      total_installments: totalInstallments,
-      current_installment: currentInstallment,
-      category_id: categoryId || null,
+    try {
+      await addInstallment.mutateAsync({
+        name,
+        amount: parseCurrencyToNumber(amount),
+        total_installments: totalInstallments,
+        current_installment: currentInstallment,
+        category_id: categoryId || null,
+        isPaid
+      })
+      handleCloseModal()
+    } catch (error) {
+      console.error(error)
     }
-
-    addMutation.mutate(payload)
   }
 
   const stats = useMemo(() => {
@@ -285,7 +169,7 @@ export default function Installments() {
               >
                 <div className="flex items-center gap-6">
                   <button 
-                    onClick={() => togglePaidMutation.mutate({ id: inst.id, is_paid: !inst.is_paid })}
+                    onClick={() => togglePaid.mutate({ id: inst.id, is_paid: !inst.is_paid })}
                     className="p-1"
                   >
                     {inst.is_paid ? (
@@ -333,7 +217,7 @@ export default function Installments() {
                   </div>
                   
                   <button 
-                    onClick={() => deleteMutation.mutate(inst)}
+                    onClick={() => deleteInstallment.mutate(inst)}
                     className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -373,7 +257,7 @@ export default function Installments() {
                   placeholder="Ex: iPhone 15, Notebook, Curso" 
                   required
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 />
                 
                 <Input 
@@ -382,7 +266,7 @@ export default function Installments() {
                   placeholder="R$ 0,00"
                   required
                   value={amount}
-                  onChange={e => setAmount(maskCurrency(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(maskCurrency(e.target.value))}
                 />
 
                 <div className="grid grid-cols-2 gap-4">
@@ -397,7 +281,7 @@ export default function Installments() {
                         placeholder="Ex: 12"
                         required
                         value={totalInstallments}
-                        onChange={e => setTotalInstallments(Number(e.target.value))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalInstallments(Number(e.target.value))}
                       />
                     </div>
                   </div>
@@ -413,7 +297,7 @@ export default function Installments() {
                         placeholder="Ex: 1"
                         required
                         value={currentInstallment}
-                        onChange={e => setCurrentInstallment(Number(e.target.value))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentInstallment(Number(e.target.value))}
                       />
                     </div>
                   </div>
@@ -456,7 +340,7 @@ export default function Installments() {
                   <Button 
                     type="submit" 
                     className="flex-1 bg-secondary hover:bg-secondary/80 text-background border-none" 
-                    isLoading={addMutation.isPending}
+                    isLoading={addInstallment.isPending}
                   >
                     Criar Projeção
                   </Button>

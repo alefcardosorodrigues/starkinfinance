@@ -1,21 +1,13 @@
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { useIncome } from '../hooks/useIncome'
+import type { Entry, EntryType } from '../types'
+import { Button } from '@/components/elements/Button'
+import { Input } from '@/components/elements/Input'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, TrendingUp, Sparkles, DollarSign, Pencil } from 'lucide-react'
 import { useMonth } from '@/contexts/MonthContext'
 
-type EntryType = 'Salário' | 'Renda Extra' | 'Vale Refeição'
 
-interface Entry {
-  id: string
-  description: string
-  amount: number
-  date: string
-  type: EntryType
-}
 
 const formatDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split('-').map(Number)
@@ -41,8 +33,15 @@ const parseCurrencyToNumber = (value: string) => {
 }
 
 export default function Income() {
-  const queryClient = useQueryClient()
   const { selectedMonth, selectedYear } = useMonth()
+  const { 
+    entries, 
+    isLoading, 
+    addEntry, 
+    updateEntry, 
+    deleteEntry 
+  } = useIncome(selectedMonth, selectedYear)
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null)
   
@@ -58,86 +57,6 @@ export default function Income() {
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     }
     return `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
-  })
-
-  // Start/End of month for filtering
-  const startDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
-  const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
-  const endDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
-
-  const { data: entries, isLoading } = useQuery({
-    queryKey: ['entries', selectedMonth, selectedYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('entries')
-        .select('*')
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: false })
-      if (error) throw error
-      return data as Entry[]
-    },
-  })
-
-  const addMutation = useMutation({
-    mutationFn: async (newEntry: Partial<Entry>) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Não autenticado')
-      
-      const { data, error } = await supabase
-        .from('entries')
-        .insert([{ ...newEntry, user_id: user.id }])
-        .select()
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['entries'] })
-      handleCloseModal()
-    },
-    onError: (error) => {
-      console.error('Erro ao adicionar entrada:', error)
-      alert('Erro ao salvar nova entrada. Verifique sua conexão ou permissões.')
-    }
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async (updatedEntry: Partial<Entry>) => {
-      if (!editingEntry) return
-      const { data, error } = await supabase
-        .from('entries')
-        .update(updatedEntry)
-        .eq('id', editingEntry.id)
-        .select()
-      if (error) throw error
-      if (!data || data.length === 0) {
-        throw new Error('Permissão negada ou registro não encontrado.')
-      }
-      return data
-    },
-    onSuccess: () => {
-      // Invalidação forçada para garantir que o item saia da lista se a data mudou de mês
-      queryClient.invalidateQueries({ queryKey: ['entries'] })
-      handleCloseModal()
-    },
-    onError: (error) => {
-      console.error('Erro ao atualizar entrada:', error)
-      alert('Erro ao salvar alterações. Verifique sua conexão ou permissões.')
-    }
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('entries').delete().eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['entries'] })
-    },
-    onError: (error) => {
-      console.error('Erro ao deletar entrada:', error)
-      alert('Erro ao excluir entrada. Tente novamente mais tarde.')
-    }
   })
 
   const handleEdit = (entry: Entry) => {
@@ -165,7 +84,7 @@ export default function Income() {
     setIsModalOpen(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const payload = {
       description,
@@ -174,10 +93,15 @@ export default function Income() {
       date
     }
 
-    if (editingEntry) {
-      updateMutation.mutate(payload)
-    } else {
-      addMutation.mutate(payload)
+    try {
+      if (editingEntry) {
+        await updateEntry.mutateAsync({ id: editingEntry.id, updates: payload })
+      } else {
+        await addEntry.mutateAsync(payload)
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -295,7 +219,7 @@ export default function Income() {
                         <Pencil className="w-5 h-5" />
                       </button>
                       <button 
-                        onClick={() => deleteMutation.mutate(entry.id)}
+                        onClick={() => deleteEntry.mutate(entry.id)}
                         className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -384,7 +308,7 @@ export default function Income() {
                   <Button 
                     type="submit" 
                     className="flex-1" 
-                    isLoading={addMutation.isPending || updateMutation.isPending}
+                    isLoading={addEntry.isPending || updateEntry.isPending}
                   >
                     {editingEntry ? 'Salvar Alterações' : 'Salvar Entrada'}
                   </Button>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/elements/Button'
+import { Input } from '@/components/elements/Input'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LogIn, UserPlus, Sparkles } from 'lucide-react'
 

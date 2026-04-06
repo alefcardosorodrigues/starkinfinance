@@ -1,21 +1,13 @@
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { useCategories } from '../hooks/useCategories'
+import type { Category, CategoryType } from '../types'
+import { Button } from '@/components/elements/Button'
+import { Input } from '@/components/elements/Input'
 import * as LucideIcons from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Tags, Sparkles, Check, Pencil } from 'lucide-react'
 
-type CategoryType = 'Essencial' | 'Desejo'
 
-interface Category {
-  id: string
-  name: string
-  type: CategoryType
-  icon: string
-  color_hex: string
-}
 
 const COLORS = [
   '#06b6d4', // Cyan
@@ -37,7 +29,6 @@ const COLORS = [
 ]
 
 export default function Categories() {
-  const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   
@@ -46,66 +37,7 @@ export default function Categories() {
   const [type, setType] = useState<CategoryType>('Essencial')
   const [color, setColor] = useState(COLORS[0])
 
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
-      if (error) throw error
-      return data as Category[]
-    },
-  })
-
-  const addMutation = useMutation({
-    mutationFn: async (newCategory: Partial<Category>) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Não autenticado')
-      
-      const { data, error } = await supabase
-        .from('categories')
-        .insert([{ 
-          ...newCategory, 
-          user_id: user.id,
-          icon: 'Tags' // Default icon for user-created categories
-        }])
-        .select()
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      handleCloseModal()
-    },
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async (updatedCategory: Partial<Category>) => {
-      if (!editingCategory) return
-      const { data, error } = await supabase
-        .from('categories')
-        .update(updatedCategory)
-        .eq('id', editingCategory.id)
-        .select()
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      handleCloseModal()
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('categories').delete().eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-    },
-  })
+  const { categories, isLoading, addCategory, updateCategory, deleteCategory } = useCategories()
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category)
@@ -123,12 +55,17 @@ export default function Categories() {
     setIsModalOpen(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (editingCategory) {
-      updateMutation.mutate({ name, type, color_hex: color })
-    } else {
-      addMutation.mutate({ name, type, color_hex: color })
+    try {
+      if (editingCategory) {
+        await updateCategory.mutateAsync({ id: editingCategory.id, updates: { name, type, color_hex: color } })
+      } else {
+        await addCategory.mutateAsync({ name, type, color_hex: color })
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -194,7 +131,7 @@ export default function Categories() {
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => deleteMutation.mutate(category.id)}
+                      onClick={() => deleteCategory.mutate(category.id)}
                       className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -301,7 +238,7 @@ export default function Categories() {
                   <Button 
                     type="submit" 
                     className="flex-1" 
-                    isLoading={addMutation.isPending || updateMutation.isPending}
+                    isLoading={addCategory.isPending || updateCategory.isPending}
                   >
                     {editingCategory ? 'Salvar Alterações' : 'Criar Categoria'}
                   </Button>

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { useFixedExpenses } from '../hooks/useFixedExpenses'
+import type { FixedExpense, Category } from '../types'
+import { Button } from '@/components/elements/Button'
+import { Input } from '@/components/elements/Input'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { 
@@ -19,24 +19,7 @@ import {
 } from 'lucide-react'
 import { useMonth } from '@/contexts/MonthContext'
 
-type Category = {
-  id: string
-  name: string
-  color_hex: string
-}
 
-type FixedExpense = {
-  id: string
-  name: string
-  amount: number
-  due_day: number
-  is_paid: boolean
-  category_id: string | null
-  month: number
-  year: number
-  recurring_id: string
-  categories?: Category
-}
 
 const formatBRL = (value: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -57,8 +40,17 @@ const parseCurrencyToNumber = (value: string) => {
 }
 
 export default function FixedExpenses() {
-  const queryClient = useQueryClient()
   const { selectedMonth, selectedYear } = useMonth()
+  const { 
+    expenses, 
+    isLoading, 
+    categories, 
+    addExpense, 
+    updateExpense, 
+    togglePaid, 
+    deleteExpense 
+  } = useFixedExpenses(selectedMonth, selectedYear)
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<FixedExpense | null>(null)
   
@@ -68,134 +60,6 @@ export default function FixedExpenses() {
   const [dueDay, setDueDay] = useState<number>(new Date().getDate())
   const [categoryId, setCategoryId] = useState('')
   const [isPaid, setIsPaid] = useState(false)
-
-  // Fetch Categories
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, color_hex')
-        .order('name')
-      if (error) throw error
-      return data as Category[]
-    }
-  })
-
-  // Fetch Fixed Expenses for current month/year
-  const { data: expenses, isLoading } = useQuery({
-    queryKey: ['fixed-expenses', selectedMonth, selectedYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fixed_expenses')
-        .select('*, categories(id, name, color_hex)')
-        .eq('month', selectedMonth)
-        .eq('year', selectedYear)
-        .order('due_day', { ascending: true })
-      if (error) throw error
-      return data as FixedExpense[]
-    },
-  })
-
-  const addMutation = useMutation({
-    mutationFn: async (newExpense: Partial<FixedExpense>) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Não autenticado')
-      
-      const groupId = crypto.randomUUID()
-      const inserts = []
-      
-      // Replicar por 12 meses
-      let currMonth = selectedMonth
-      let currYear = selectedYear
-
-      for (let i = 0; i < 12; i++) {
-        inserts.push({
-          ...newExpense,
-          user_id: user.id,
-          month: currMonth,
-          year: currYear,
-          recurring_id: groupId
-        })
-        
-        currMonth++
-        if (currMonth > 11) {
-          currMonth = 0
-          currYear++
-        }
-      }
-
-      const { data, error } = await supabase
-        .from('fixed_expenses')
-        .insert(inserts)
-        .select()
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] })
-      handleCloseModal()
-    },
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async (updated: Partial<FixedExpense>) => {
-      if (!editingExpense) return
-      
-      const { error } = await supabase
-        .from('fixed_expenses')
-        .update({
-          name: updated.name,
-          amount: updated.amount,
-          due_day: updated.due_day,
-          category_id: updated.category_id
-        })
-        .eq('recurring_id', editingExpense.recurring_id)
-        .or(`year.gt.${selectedYear},and(year.eq.${selectedYear},month.gte.${selectedMonth})`)
-        
-      if (error) {
-        console.error('Erro ao atualizar gasto fixo:', error)
-        throw error
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] })
-      handleCloseModal()
-    },
-  })
-
-  const togglePaidMutation = useMutation({
-    mutationFn: async ({ id, is_paid }: { id: string, is_paid: boolean }) => {
-      // Toggle pago é APENAS para este mês específico
-      const { error } = await supabase
-        .from('fixed_expenses')
-        .update({ is_paid })
-        .eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] })
-    },
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: async (expense: FixedExpense) => {
-      // Deletar ESTE e TODOS os meses FUTUROS com o mesmo recurring_id
-      const { error } = await supabase
-        .from('fixed_expenses')
-        .delete()
-        .eq('recurring_id', expense.recurring_id)
-        .or(`year.gt.${selectedYear},and(year.eq.${selectedYear},month.gte.${selectedMonth})`)
-      
-      if (error) {
-        console.error('Erro ao deletar gasto fixo:', error)
-        throw error
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] })
-    },
-  })
 
   const handleEdit = (expense: FixedExpense) => {
     setEditingExpense(expense)
@@ -217,7 +81,7 @@ export default function FixedExpenses() {
     setIsModalOpen(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const payload = {
       name,
@@ -227,10 +91,15 @@ export default function FixedExpenses() {
       is_paid: isPaid
     }
 
-    if (editingExpense) {
-      updateMutation.mutate(payload)
-    } else {
-      addMutation.mutate(payload)
+    try {
+      if (editingExpense) {
+        await updateExpense.mutateAsync({ recurring_id: editingExpense.recurring_id, updates: payload })
+      } else {
+        await addExpense.mutateAsync(payload)
+      }
+      handleCloseModal()
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -334,7 +203,7 @@ export default function FixedExpenses() {
               >
                 <div className="flex items-center gap-6">
                   <button 
-                    onClick={() => togglePaidMutation.mutate({ id: expense.id, is_paid: !expense.is_paid })}
+                    onClick={() => togglePaid.mutate({ id: expense.id, is_paid: !expense.is_paid })}
                     className="p-1 transition-transform active:scale-90"
                   >
                     {expense.is_paid ? (
@@ -384,7 +253,7 @@ export default function FixedExpenses() {
                       <Pencil className="w-5 h-5" />
                     </button>
                     <button 
-                      onClick={() => deleteMutation.mutate(expense)}
+                      onClick={() => deleteExpense.mutate(expense.recurring_id)}
                       className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -497,7 +366,7 @@ export default function FixedExpenses() {
                   <Button 
                     type="submit" 
                     className="flex-1" 
-                    isLoading={addMutation.isPending || updateMutation.isPending}
+                    isLoading={addExpense.isPending || updateExpense.isPending}
                   >
                     {editingExpense ? 'Atualizar todos' : 'Salvar e Replicar'}
                   </Button>

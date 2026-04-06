@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useMonth } from '@/contexts/MonthContext'
-import { ComparisonChart } from '@/components/dashboard/ComparisonChart'
-import { ExpensesPieChart } from '@/components/dashboard/ExpensesPieChart'
+import { ComparisonChart } from '@/features/dashboard/components/ComparisonChart'
+import { ExpensesPieChart } from '@/features/dashboard/components/ExpensesPieChart'
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Skeleton } from '@/components/ui/Skeleton'
+import { Skeleton } from '@/components/elements/Skeleton'
 
 interface CategoryBudget {
   category_id: string
