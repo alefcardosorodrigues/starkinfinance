@@ -45,7 +45,7 @@ export function useInstallments(selectedMonth: number, selectedYear: number) {
         .eq('year', selectedYear)
         .order('name', { ascending: true })
       if (error) throw error
-      return data as Installment[]
+      return data as unknown as Installment[]
     },
   })
 
