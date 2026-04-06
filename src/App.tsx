@@ -23,10 +23,24 @@ function App() {
       setLoading(false)
     })
 
+    let previousUserId: string | undefined
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
+
+      // Limpa o cache quando o usuário desloga ou quando troca de conta
+      if (event === 'SIGNED_OUT') {
+        import('./main').then(({ queryClient }) => queryClient.clear())
+      }
+
+      // Detecta troca de usuário (ex: login em guia anônima refletindo aqui)
+      if (session?.user?.id && previousUserId && session.user.id !== previousUserId) {
+        import('./main').then(({ queryClient }) => queryClient.clear())
+      }
+
+      previousUserId = session?.user?.id
     })
 
     return () => subscription.unsubscribe()

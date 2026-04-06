@@ -20,6 +20,9 @@ export default function Login() {
 
     try {
       if (isLogin) {
+        // Garante que qualquer sessão anterior seja encerrada antes de logar com novo usuário
+        await supabase.auth.signOut()
+
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,

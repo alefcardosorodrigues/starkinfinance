@@ -24,12 +24,28 @@ export function useInstallments(selectedMonth: number, selectedYear: number) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('installments')
-        .select('*, categories(id, name, color_hex)')
+        .select(`
+          id,
+          name,
+          amount,
+          total_installments,
+          current_installment,
+          is_paid,
+          category_id,
+          month,
+          year,
+          group_id,
+          categories:category_id (
+            id,
+            name,
+            color_hex
+          )
+        `)
         .eq('month', selectedMonth)
         .eq('year', selectedYear)
         .order('name', { ascending: true })
       if (error) throw error
-      return data as Installment[]
+      return data as unknown as Installment[]
     },
   })
 

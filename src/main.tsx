@@ -6,7 +6,7 @@ import App from './App'
 import { MonthProvider } from './contexts/MonthContext'
 import './index.css'
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,

@@ -185,22 +185,22 @@ export default function Installments() {
                         "font-bold text-lg",
                         inst.is_paid ? "text-white/40 line-through" : "text-white"
                       )}>
-                        {inst.name}
+                        {inst.name || 'Sem nome'}
                       </h3>
                       <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-black text-secondary">
-                        {String(inst.current_installment).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
+                        {String(inst.current_installment || '0').padStart(2, '0')}/{String(inst.total_installments || '0').padStart(2, '0')}
                       </span>
                     </div>
                     <div className="flex gap-4 items-center text-[10px] font-bold uppercase tracking-widest text-white/30">
                       {inst.categories && (
-                        <span className="flex items-center gap-1" style={{ color: inst.categories.color_hex }}>
+                        <span className="flex items-center gap-1" style={{ color: (Array.isArray(inst.categories) ? inst.categories[0]?.color_hex : inst.categories.color_hex) || '#A5B4FC' }}>
                           <Tag className="w-3 h-3" />
-                          {inst.categories.name}
+                          {(Array.isArray(inst.categories) ? inst.categories[0]?.name : inst.categories.name) || 'Sem categoria'}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" />
-                        {inst.total_installments - inst.current_installment} parcelas restantes
+                        {((inst.total_installments || 0) - (inst.current_installment || 0))} parcelas restantes
                       </span>
                     </div>
                   </div>

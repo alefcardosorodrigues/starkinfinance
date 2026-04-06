@@ -21,6 +21,7 @@ export function useIncome(selectedMonth: number, selectedYear: number) {
       if (error) throw error
       return data as Entry[]
     },
+    placeholderData: [],
   })
 
   const addEntry = useMutation({
