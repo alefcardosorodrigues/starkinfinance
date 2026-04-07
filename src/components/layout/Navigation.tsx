@@ -70,8 +70,8 @@ export default function Navigation() {
 
   return (
     <>
-      {/* ─── DESKTOP SIDEBAR (md+) ─── */}
-      <nav className="hidden md:flex fixed left-0 top-0 h-screen w-64 glass border-r border-white/5 z-50 flex-col p-4">
+      {/* ─── DESKTOP SIDEBAR (lg+) ─── */}
+      <nav className="hidden lg:flex fixed left-0 top-0 h-screen w-64 glass border-r border-white/5 z-50 flex-col p-4">
         {/* Brand */}
         <div className="flex items-center gap-3 mb-10 px-2 shrink-0">
           <div className="w-10 h-10 rounded-md bg-primary-gradient flex items-center justify-center shadow-neon-primary shrink-0">
@@ -170,8 +170,8 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* ─── MOBILE HEADER (< md) ─── */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 glass border-b border-white/5">
+      {/* ─── MOBILE HEADER (< lg) ─── */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 glass border-b border-white/5">
         {/* Brand */}
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-md bg-primary-gradient flex items-center justify-center shadow-neon-primary">
@@ -204,7 +204,7 @@ export default function Navigation() {
       {/* ─── MOBILE CALENDAR SHEET ─── */}
       <AnimatePresence>
         {showMobileCalendar && (
-          <div className="md:hidden fixed inset-0 z-[60] flex flex-col justify-end">
+          <div className="lg:hidden fixed inset-0 z-[60] flex flex-col justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -273,8 +273,8 @@ export default function Navigation() {
         )}
       </AnimatePresence>
 
-      {/* ─── MOBILE BOTTOM NAV (< md) ─── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/5 flex items-center justify-around px-2 py-2 pb-safe">
+      {/* ─── MOBILE BOTTOM NAV (< lg) ─── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/5 flex items-center justify-around px-2 py-2 pb-safe">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href
           return (

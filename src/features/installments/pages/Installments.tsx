@@ -105,38 +105,38 @@ export default function Installments() {
         <div className="absolute top-[30%] right-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-8 md:mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 lg:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <CreditCard className="text-secondary w-4 h-4 md:w-5 md:h-5 drop-shadow-[0_0_8px_rgba(173,198,255,0.4)]" />
-            <span className="label-architectural mb-0 text-[9px] md:text-[10px]">STARKIN FINANCE</span>
+            <CreditCard className="text-secondary w-4 h-4 lg:w-5 lg:h-5 drop-shadow-[0_0_8px_rgba(173,198,255,0.4)]" />
+            <span className="label-architectural mb-0 text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Meus <span className="text-secondary">Parcelamentos</span></h1>
+          <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Meus <span className="text-secondary">Parcelamentos</span></h1>
         </div>
       </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12 relative z-10">
-        <div className="glass-card p-6 bg-surface-container-low border-white/5">
-          <span className="label-architectural text-white/40 block mb-2">Total Parcelas/Mês</span>
-          <div className="text-3xl font-extrabold">{formatBRL(stats.total)}</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-12 relative z-10">
+        <div className="glass-card p-4 lg:p-6 bg-surface-container-low border-white/5">
+          <span className="label-architectural text-white/40 block mb-1 text-[10px]">Parcelas/Mês</span>
+          <div className="text-xl lg:text-3xl font-extrabold">{formatBRL(stats.total)}</div>
         </div>
         
-        <div className="glass-card p-6 bg-secondary/10 border-secondary/20">
-          <span className="label-architectural text-secondary/60 block mb-2">Pago</span>
-          <div className="text-3xl font-extrabold text-secondary">{formatBRL(stats.paid)}</div>
+        <div className="glass-card p-4 lg:p-6 bg-secondary/10 border-secondary/20">
+          <span className="label-architectural text-secondary/60 block mb-1 text-[10px]">Pago</span>
+          <div className="text-xl lg:text-3xl font-extrabold text-secondary">{formatBRL(stats.paid)}</div>
         </div>
 
-        <div className="glass-card p-6 bg-surface-container-lowest border-white/5">
-          <span className="label-architectural text-white/20 block mb-2">Pendência no Mês</span>
-          <div className="text-3xl font-extrabold text-white/60">{formatBRL(stats.pending)}</div>
+        <div className="glass-card p-4 lg:p-6 bg-surface-container-lowest border-white/5">
+          <span className="label-architectural text-white/20 block mb-1 text-[10px]">Pendência</span>
+          <div className="text-xl lg:text-3xl font-extrabold text-white/60">{formatBRL(stats.pending)}</div>
         </div>
 
         <Button 
-          className="h-full min-h-[100px] text-lg font-extrabold bg-secondary hover:bg-secondary/80 text-background shadow-neon-secondary border-none" 
+          className="h-full min-h-[80px] lg:min-h-[100px] text-base lg:text-lg font-extrabold bg-secondary hover:bg-secondary/80 text-background shadow-neon-secondary border-none" 
           onClick={() => setIsModalOpen(true)}
         >
-          <Plus className="w-6 h-6 mr-2" />
-          Novo Parcelamento
+          <Plus className="w-5 h-5 lg:w-6 lg:h-6 mr-2" />
+          Novo Registro
         </Button>
       </div>
 
@@ -156,72 +156,70 @@ export default function Installments() {
               <p className="text-white/20 font-medium">Nenhum parcelamento ativo para este período.</p>
             </div>
           ) : (
-            installments?.map((inst, index) => (
+              installments?.map((inst, index) => (
               <motion.div
                 key={inst.id}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 className={clsx(
-                  "glass-card px-4 md:px-6 py-4 md:py-5 flex items-center justify-between transition-all group",
+                  "glass-card px-4 lg:px-6 py-4 lg:py-5 flex items-center justify-between transition-all group",
                   inst.is_paid ? "bg-secondary/5 border-secondary/20" : "bg-surface-container-low border-white/5"
                 )}
               >
-                <div className="flex items-center gap-3 md:gap-6 min-w-0">
+                <div className="flex items-center gap-3 lg:gap-6 min-w-0">
                   <button 
                     onClick={() => togglePaid.mutate({ id: inst.id, is_paid: !inst.is_paid })}
-                    className="p-1 shrink-0"
+                    className="p-1 shrink-0 transition-transform active:scale-95"
                   >
                     {inst.is_paid ? (
-                      <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7 text-secondary" />
+                      <CheckCircle2 className="w-6 h-6 lg:w-7 lg:h-7 text-secondary" />
                     ) : (
-                      <Circle className="w-6 h-6 md:w-7 md:h-7 text-white/10 group-hover:text-white/30" />
+                      <Circle className="w-6 h-6 lg:w-7 lg:h-7 text-white/10 group-hover:text-white/30" />
                     )}
                   </button>
                   
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className={clsx(
-                        "font-bold text-base md:text-lg",
+                        "font-bold text-sm lg:text-lg transition-all",
                         inst.is_paid ? "text-white/40 line-through" : "text-white"
                       )}>
                         {inst.name || 'Sem nome'}
                       </h3>
-                      <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-black text-secondary shrink-0">
+                      <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-black text-secondary shrink-0">
                         {String(inst.current_installment || '0').padStart(2, '0')}/{String(inst.total_installments || '0').padStart(2, '0')}
                       </span>
                     </div>
-                    <div className="flex gap-3 items-center text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/30 flex-wrap">
+                    <div className="flex gap-2 lg:gap-3 items-center text-[9px] lg:text-[10px] font-bold uppercase tracking-widest text-white/30 flex-wrap">
                       {inst.categories && (
                         <span className="flex items-center gap-1" style={{ color: (Array.isArray(inst.categories) ? inst.categories[0]?.color_hex : inst.categories.color_hex) || '#A5B4FC' }}>
                           <Tag className="w-3 h-3" />
                           {(Array.isArray(inst.categories) ? inst.categories[0]?.name : inst.categories.name) || 'Sem categoria'}
                         </span>
                       )}
-                      <span className="flex items-center gap-1 hidden md:flex">
-                        <CalendarDays className="w-3 h-3" />
-                        {((inst.total_installments || 0) - (inst.current_installment || 0))} restantes
-                      </span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 md:gap-8 shrink-0">
+                <div className="flex items-center gap-3 lg:gap-8 shrink-0">
                   <div className="text-right">
                     <div className={clsx(
-                      "text-base md:text-xl font-extrabold whitespace-nowrap",
+                      "text-base lg:text-xl font-extrabold whitespace-nowrap",
                       inst.is_paid ? "text-secondary/60" : "text-white"
                     )}>
                       {formatBRL(inst.amount)}
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={() => deleteInstallment.mutate(inst)}
-                    className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+                    <button 
+                      onClick={() => deleteInstallment.mutate(inst)}
+                      className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all touch-manipulation"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))
@@ -232,7 +230,7 @@ export default function Installments() {
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
+          <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -244,7 +242,7 @@ export default function Installments() {
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
-              className="relative w-full max-w-lg bg-surface-container-high rounded-t-2xl md:rounded-2xl p-8 shadow-2xl border-t border-white/10 md:border-none"
+              className="relative w-full max-w-lg bg-surface-container-high rounded-t-2xl lg:rounded-2xl p-6 lg:p-8 shadow-2xl border-t border-white/10 lg:border-none"
             >
               <h3 className="text-2xl font-extrabold mb-6 flex items-center gap-3">
                 <CreditCard className="text-secondary w-6 h-6" />

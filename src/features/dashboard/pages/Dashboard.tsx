@@ -259,13 +259,13 @@ export default function Dashboard() {
       </header>
 
       {/* Main Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
           { label: 'Entradas', value: totals.income, icon: TrendingUp, color: 'primary' },
           { label: 'Gastos Fixos', value: totals.fixed, icon: Receipt, color: 'secondary' },
           { label: 'Variáveis', value: totals.variable, icon: Target, color: 'tertiary' },
           { label: 'Parcelamentos', value: totals.installments, icon: CreditCard, color: 'secondary' },
-          { label: 'Total de Gastos', value: totals.totalExpenses, icon: TrendingDown, color: 'tertiary', highlight: true },
+          { label: 'Total Gastos', value: totals.totalExpenses, icon: TrendingDown, color: 'tertiary', highlight: true },
         ].map((item, idx) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -273,25 +273,25 @@ export default function Dashboard() {
             transition={{ delay: idx * 0.1 }}
             key={item.label}
             className={clsx(
-              "glass p-6 rounded-xl border transition-all duration-300 group",
+              "glass p-4 lg:p-6 rounded-xl border transition-all duration-300 group",
               item.highlight ? "border-tertiary/30 bg-tertiary/5" : "border-white/5"
             )}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div className={clsx(
-                "w-10 h-10 rounded-lg flex items-center justify-center border transition-all duration-300",
+                "w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center border transition-all duration-300",
                 item.color === 'primary' ? "bg-primary/20 border-primary/20 text-primary group-hover:shadow-neon-primary" :
                 item.color === 'secondary' ? "bg-secondary/20 border-secondary/20 text-secondary group-hover:shadow-neon-secondary" :
                 "bg-tertiary/20 border-tertiary/20 text-tertiary group-hover:shadow-neon-tertiary"
               )}>
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
             </div>
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">{item.label}</p>
+            <p className="text-[9px] lg:text-[10px] font-bold text-white/30 uppercase tracking-[0.15em] mb-1 leading-tight">{item.label}</p>
             {isLoading ? (
-              <Skeleton className="h-7 w-32 mt-1" />
+              <Skeleton className="h-6 w-24 mt-1" />
             ) : (
-              <h3 className="text-xl font-extrabold tracking-tight truncate">
+              <h3 className="text-base lg:text-xl font-extrabold tracking-tight truncate">
                 {formatCurrency(item.value)}
               </h3>
             )}
