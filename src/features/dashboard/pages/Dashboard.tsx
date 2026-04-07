@@ -242,24 +242,24 @@ export default function Dashboard() {
   return (
     <div className="p-4 md:p-10 space-y-10 max-w-7xl mx-auto">
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2">Controle Estratégico</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">Controle Estratégico</h1>
           <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-[10px]">Visão Geral de Saúde Financeira</p>
         </div>
         
-        <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-lg border border-white/5 shadow-inner">
+        <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-lg border border-white/5 shadow-inner self-start md:self-auto">
           <div className={clsx(
-            "px-4 py-2 rounded-md font-bold text-sm tracking-widest uppercase transition-all duration-500",
+            "px-3 md:px-4 py-2 rounded-md font-bold text-xs md:text-sm tracking-widest uppercase transition-all duration-500",
             isLoading ? "bg-white/5 text-transparent" : (totals.balance >= 0 ? "bg-primary/20 text-primary shadow-neon-primary" : "bg-tertiary/20 text-tertiary shadow-neon-tertiary")
           )}>
-            {isLoading ? <Skeleton className="h-5 w-40" /> : `SALDO DISPONÍVEL: ${formatCurrency(totals.balance)}`}
+            {isLoading ? <Skeleton className="h-5 w-40" /> : `SALDO: ${formatCurrency(totals.balance)}`}
           </div>
         </div>
       </header>
 
       {/* Main Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
         {[
           { label: 'Entradas', value: totals.income, icon: TrendingUp, color: 'primary' },
           { label: 'Gastos Fixos', value: totals.fixed, icon: Receipt, color: 'secondary' },
@@ -300,9 +300,9 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Dual Track */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-stretch">
         <div className="relative">
-          {isLoading && <Skeleton className="absolute inset-x-0 h-80 rounded-xl" />}
+          {isLoading && <Skeleton className="absolute inset-x-0 h-60 md:h-80 rounded-xl" />}
           <div className={isLoading ? 'opacity-0' : ''}>
             <ComparisonChart 
               income={totals.income} 
@@ -311,7 +311,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="relative">
-          {isLoading && <Skeleton className="absolute inset-x-0 h-80 rounded-xl" />}
+          {isLoading && <Skeleton className="absolute inset-x-0 h-60 md:h-80 rounded-xl" />}
           <div className={isLoading ? 'opacity-0' : ''}>
             <ExpensesPieChart 
               data={categoryStates.map(cat => ({
@@ -326,7 +326,7 @@ export default function Dashboard() {
 
       {/* Budget Table */}
       <section className="glass rounded-2xl border border-white/5 overflow-hidden">
-        <div className="p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+        <div className="p-4 md:p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
           <div className="flex items-center gap-4 cursor-pointer group/header" onClick={() => setIsTableExpanded(!isTableExpanded)}>
             <div className={clsx(
               "w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 transition-all group-hover/header:border-primary/30 group-hover/header:bg-primary/5",

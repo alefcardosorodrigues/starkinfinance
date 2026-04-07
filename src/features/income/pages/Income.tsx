@@ -114,13 +114,13 @@ export default function Income() {
         <div className="absolute bottom-[20%] left-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 md:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="text-primary w-5 h-5 shadow-neon-primary" />
-            <span className="label-architectural mb-0">STARKIN FINANCE</span>
+            <Sparkles className="text-primary w-4 h-4 md:w-5 md:h-5 shadow-neon-primary" />
+            <span className="label-architectural mb-0 text-[9px] md:text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Gestão de <span className="text-primary">Entradas</span></h1>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Gestão de <span className="text-primary">Entradas</span></h1>
         </div>
       </header>
 
@@ -135,16 +135,16 @@ export default function Income() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="glass-card p-8 bg-secondary-gradient border-none"
+              className="glass-card p-6 md:p-8 bg-secondary-gradient border-none"
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-white/20 rounded-md">
-                  <TrendingUp className="text-white w-6 h-6" />
+              <div className="flex justify-between items-start mb-4 md:mb-6">
+                <div className="p-2 md:p-3 bg-white/20 rounded-md">
+                  <TrendingUp className="text-white w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 <span className="label-architectural text-white/60">Total Mensal</span>
               </div>
-              <div className="text-5xl font-extrabold tracking-tight mb-2">
-                <span className="text-white/60 text-2xl font-medium mr-2">R$</span>
+              <div className="text-3xl md:text-5xl font-extrabold tracking-tight mb-2">
+                <span className="text-white/60 text-xl md:text-2xl font-medium mr-2">R$</span>
                 {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
               <p className="text-white/80 text-sm font-medium tracking-wide font-mono">
@@ -192,20 +192,20 @@ export default function Income() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="glass-card px-6 py-4 flex items-center justify-between group"
+                  className="glass-card px-4 md:px-6 py-4 flex items-center justify-between group"
                 >
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-3 md:gap-6 min-w-0">
                     <div className={clsx(
-                      "w-12 h-12 rounded-md flex items-center justify-center font-bold",
+                      "w-10 h-10 md:w-12 md:h-12 rounded-md flex items-center justify-center font-bold shrink-0 text-sm",
                       entry.type === 'Salário' ? "bg-primary/20 text-primary border border-primary/20" :
                       entry.type === 'Vale Refeição' ? "bg-secondary/20 text-secondary border border-secondary/20" :
                       "bg-tertiary/20 text-tertiary border border-tertiary/20"
                     )}>
                       {entry.type[0]}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-white text-lg">{entry.description}</h3>
-                      <div className="flex gap-3 text-xs font-bold uppercase tracking-wider text-white/40">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-white text-base md:text-lg truncate">{entry.description}</h3>
+                      <div className="flex gap-2 md:gap-3 text-xs font-bold uppercase tracking-wider text-white/40 flex-wrap">
                         <span>{formatDate(entry.date)}</span>
                         <span>•</span>
                         <span>{entry.type}</span>
@@ -213,24 +213,24 @@ export default function Income() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 md:gap-6 shrink-0">
                     <div className="text-right">
-                      <div className="text-xl font-extrabold text-white">
+                      <div className="text-base md:text-xl font-extrabold text-white whitespace-nowrap">
                         {formatBRL(entry.amount)}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <button 
                         onClick={() => handleEdit(entry)}
-                        className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-primary/10 text-white/20 hover:text-primary transition-all"
+                        className="p-2 rounded-md hover:bg-primary/10 text-white/30 hover:text-primary transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                       >
-                        <Pencil className="w-5 h-5" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteEntry.mutate(entry.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
+                        className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

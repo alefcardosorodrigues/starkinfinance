@@ -130,13 +130,13 @@ export default function VariableExpenses() {
         <div className="absolute bottom-[20%] left-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 md:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="text-secondary w-5 h-5 shadow-neon-secondary" />
-            <span className="label-architectural mb-0">STARKIN FINANCE</span>
+            <Sparkles className="text-secondary w-4 h-4 md:w-5 md:h-5 shadow-neon-secondary" />
+            <span className="label-architectural mb-0 text-[9px] md:text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Gastos <span className="text-secondary">Variáveis</span></h1>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Gastos <span className="text-secondary">Variáveis</span></h1>
         </div>
       </header>
 
@@ -203,31 +203,31 @@ export default function VariableExpenses() {
                 transition={{ delay: index * 0.03 }}
                 className="group relative"
               >
-                <div className="glass-card px-8 py-6 flex items-center justify-between bg-surface-container-low border-white/5 transition-all hover:bg-surface-container-high hover:translate-x-1">
-                  <div className="flex items-center gap-8">
+                <div className="glass-card px-4 md:px-8 py-4 md:py-6 flex items-center justify-between bg-surface-container-low border-white/5 transition-all hover:bg-surface-container-high">
+                  <div className="flex items-center gap-4 md:gap-8 min-w-0">
                     {/* Date Badge */}
-                    <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-white/5 border border-white/10 shrink-0">
-                      <span className="text-[10px] font-black text-white/30 uppercase leading-none mb-1">
+                    <div className="flex flex-col items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white/5 border border-white/10 shrink-0">
+                      <span className="text-[9px] font-black text-white/30 uppercase leading-none mb-1">
                         {format(parseISO(expense.date), 'MMM', { locale: ptBR })}
                       </span>
-                      <span className="text-xl font-black text-white leading-none">
+                      <span className="text-lg md:text-xl font-black text-white leading-none">
                         {format(parseISO(expense.date), 'dd')}
                       </span>
                     </div>
 
-                    <div>
-                      <h3 className="font-bold text-xl text-white mb-1 group-hover:text-secondary transition-colors">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-base md:text-xl text-white mb-1 group-hover:text-secondary transition-colors truncate">
                         {expense.name}
                       </h3>
-                      <div className="flex flex-wrap gap-3 items-center">
+                      <div className="flex flex-wrap gap-2 md:gap-3 items-center">
                         {expense.categories && (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5 bg-white/5" style={{ color: expense.categories.color_hex }}>
+                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-white/5 bg-white/5" style={{ color: expense.categories.color_hex }}>
                             <Tag className="w-3 h-3" />
                             {expense.categories.name}
                           </span>
                         )}
                         {expense.obs && (
-                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                          <span className="flex items-center gap-1.5 text-[9px] font-bold text-white/30 uppercase tracking-widest hidden md:flex">
                             <FileText className="w-3 h-3" />
                             {expense.obs}
                           </span>
@@ -236,25 +236,25 @@ export default function VariableExpenses() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-10">
+                  <div className="flex items-center gap-3 md:gap-10 shrink-0">
                     <div className="text-right">
-                      <div className="text-2xl font-black text-white tracking-tighter">
+                      <div className="text-base md:text-2xl font-black text-white tracking-tighter whitespace-nowrap">
                         {formatBRL(expense.value)}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => handleEdit(expense)}
-                        className="p-3 rounded-xl hover:bg-white/10 text-white/20 hover:text-white transition-all active:scale-95"
+                        className="p-2 rounded-xl hover:bg-white/10 text-white/30 hover:text-white transition-all active:scale-95"
                       >
-                        <Pencil className="w-5 h-5" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteExpense.mutate(expense.id)}
-                        className="p-3 rounded-xl hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all active:scale-95"
+                        className="p-2 rounded-xl hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all active:scale-95"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

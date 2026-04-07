@@ -18,6 +18,8 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { useMonth } from '@/contexts/MonthContext'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 
 
@@ -120,17 +122,17 @@ export default function FixedExpenses() {
         <div className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] bg-tertiary/5 rounded-full blur-[100px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 md:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="text-primary w-5 h-5 shadow-neon-primary" />
-            <span className="label-architectural mb-0">STARKIN FINANCE</span>
+            <Sparkles className="text-primary w-4 h-4 md:w-5 md:h-5 shadow-neon-primary" />
+            <span className="label-architectural mb-0 text-[9px] md:text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Gastos <span className="text-primary">Fixos</span></h1>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Gastos <span className="text-primary">Fixos</span></h1>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12 relative z-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12 relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -197,34 +199,40 @@ export default function FixedExpenses() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={clsx(
-                  "glass-card px-6 py-4 flex items-center justify-between transition-all duration-300 group",
+                  "glass-card px-4 md:px-6 py-4 flex items-center justify-between transition-all duration-300 group",
                   expense.is_paid ? "bg-primary/5 border-primary/20" : "bg-surface-container-low border-white/5"
                 )}
               >
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 md:gap-6 min-w-0">
                   <button 
                     onClick={() => togglePaid.mutate({ id: expense.id, is_paid: !expense.is_paid })}
-                    className="p-1 transition-transform active:scale-90"
+                    className="p-1 transition-transform active:scale-90 shrink-0"
                   >
                     {expense.is_paid ? (
-                      <CheckCircle2 className="w-7 h-7 text-primary drop-shadow-[0_0_8px_rgba(173,198,255,0.6)]" />
+                      <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7 text-primary drop-shadow-[0_0_8px_rgba(173,198,255,0.6)]" />
                     ) : (
-                      <Circle className="w-7 h-7 text-white/20 group-hover:text-white/40 group-hover:border-white/40" />
+                      <Circle className="w-6 h-6 md:w-7 md:h-7 text-white/20 group-hover:text-white/40" />
                     )}
                   </button>
                   
-                  <div>
+                  {/* Date Badge */}
+                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 shrink-0">
+                    <span className="text-[9px] font-black text-white/30 uppercase leading-none mb-1">
+                      {format(new Date(selectedYear, selectedMonth, 1), 'MMM', { locale: ptBR })}
+                    </span>
+                    <span className="text-lg font-black text-white leading-none">
+                      {String(expense.due_day).padStart(2, '0')}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
                     <h3 className={clsx(
-                      "font-bold text-lg transition-all",
+                      "font-bold text-base md:text-lg transition-all truncate",
                       expense.is_paid ? "text-white/40 line-through" : "text-white"
                     )}>
                       {expense.name}
                     </h3>
-                    <div className="flex gap-3 items-center text-[10px] font-bold uppercase tracking-widest text-white/40">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" />
-                        Dia {expense.due_day}
-                      </span>
+                    <div className="flex gap-2 md:gap-3 items-center text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/40">
                       {expense.categories && (
                         <span className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-white/5 bg-white/5" style={{ color: expense.categories.color_hex }}>
                           <Tag className="w-3 h-3" />
@@ -235,28 +243,28 @@ export default function FixedExpenses() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-3 md:gap-8 shrink-0">
                   <div className="text-right">
                     <div className={clsx(
-                      "text-xl font-extrabold transition-all",
+                      "text-base md:text-xl font-extrabold transition-all whitespace-nowrap",
                       expense.is_paid ? "text-primary/60" : "text-white"
                     )}>
                       {formatBRL(expense.amount)}
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
                     <button 
                       onClick={() => handleEdit(expense)}
-                      className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-white/10 text-white/20 hover:text-white transition-all"
+                      className="p-2 rounded-md hover:bg-white/10 text-white/30 hover:text-white transition-all"
                     >
-                      <Pencil className="w-5 h-5" />
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => deleteExpense.mutate(expense.recurring_id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
+                      className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

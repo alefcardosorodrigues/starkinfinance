@@ -105,17 +105,17 @@ export default function Installments() {
         <div className="absolute top-[30%] right-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 md:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <CreditCard className="text-secondary w-5 h-5 drop-shadow-[0_0_8px_rgba(173,198,255,0.4)]" />
-            <span className="label-architectural mb-0">STARKIN FINANCE</span>
+            <CreditCard className="text-secondary w-4 h-4 md:w-5 md:h-5 drop-shadow-[0_0_8px_rgba(173,198,255,0.4)]" />
+            <span className="label-architectural mb-0 text-[9px] md:text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Meus <span className="text-secondary">Parcelamentos</span></h1>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Meus <span className="text-secondary">Parcelamentos</span></h1>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12 relative z-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12 relative z-10">
         <div className="glass-card p-6 bg-surface-container-low border-white/5">
           <span className="label-architectural text-white/40 block mb-2">Total Parcelas/Mês</span>
           <div className="text-3xl font-extrabold">{formatBRL(stats.total)}</div>
@@ -163,53 +163,53 @@ export default function Installments() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 className={clsx(
-                  "glass-card px-6 py-5 flex items-center justify-between transition-all group",
+                  "glass-card px-4 md:px-6 py-4 md:py-5 flex items-center justify-between transition-all group",
                   inst.is_paid ? "bg-secondary/5 border-secondary/20" : "bg-surface-container-low border-white/5"
                 )}
               >
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 md:gap-6 min-w-0">
                   <button 
                     onClick={() => togglePaid.mutate({ id: inst.id, is_paid: !inst.is_paid })}
-                    className="p-1"
+                    className="p-1 shrink-0"
                   >
                     {inst.is_paid ? (
-                      <CheckCircle2 className="w-7 h-7 text-secondary" />
+                      <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7 text-secondary" />
                     ) : (
-                      <Circle className="w-7 h-7 text-white/10 group-hover:text-white/30" />
+                      <Circle className="w-6 h-6 md:w-7 md:h-7 text-white/10 group-hover:text-white/30" />
                     )}
                   </button>
                   
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className={clsx(
-                        "font-bold text-lg",
+                        "font-bold text-base md:text-lg",
                         inst.is_paid ? "text-white/40 line-through" : "text-white"
                       )}>
                         {inst.name || 'Sem nome'}
                       </h3>
-                      <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-black text-secondary">
+                      <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-black text-secondary shrink-0">
                         {String(inst.current_installment || '0').padStart(2, '0')}/{String(inst.total_installments || '0').padStart(2, '0')}
                       </span>
                     </div>
-                    <div className="flex gap-4 items-center text-[10px] font-bold uppercase tracking-widest text-white/30">
+                    <div className="flex gap-3 items-center text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/30 flex-wrap">
                       {inst.categories && (
                         <span className="flex items-center gap-1" style={{ color: (Array.isArray(inst.categories) ? inst.categories[0]?.color_hex : inst.categories.color_hex) || '#A5B4FC' }}>
                           <Tag className="w-3 h-3" />
                           {(Array.isArray(inst.categories) ? inst.categories[0]?.name : inst.categories.name) || 'Sem categoria'}
                         </span>
                       )}
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 hidden md:flex">
                         <CalendarDays className="w-3 h-3" />
-                        {((inst.total_installments || 0) - (inst.current_installment || 0))} parcelas restantes
+                        {((inst.total_installments || 0) - (inst.current_installment || 0))} restantes
                       </span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-3 md:gap-8 shrink-0">
                   <div className="text-right">
                     <div className={clsx(
-                      "text-xl font-extrabold",
+                      "text-base md:text-xl font-extrabold whitespace-nowrap",
                       inst.is_paid ? "text-secondary/60" : "text-white"
                     )}>
                       {formatBRL(inst.amount)}
@@ -218,9 +218,9 @@ export default function Installments() {
                   
                   <button 
                     onClick={() => deleteInstallment.mutate(inst)}
-                    className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
+                    className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </motion.div>
