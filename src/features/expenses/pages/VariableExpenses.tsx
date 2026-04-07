@@ -123,38 +123,38 @@ export default function VariableExpenses() {
   }, [expenses])
 
   return (
-    <div className="min-h-screen bg-background text-white p-6 md:p-12 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white p-4 lg:p-12 font-sans overflow-x-hidden">
       {/* Background Lighting */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[20%] left-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute top-[10%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-secondary/5 rounded-full blur-[80px] lg:blur-[120px]" />
+        <div className="absolute bottom-[20%] left-[-10%] w-[300px] lg:w-[400px] h-[300px] lg:h-[400px] bg-primary/5 rounded-full blur-[80px] lg:blur-[100px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 lg:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="text-secondary w-5 h-5 shadow-neon-secondary" />
-            <span className="label-architectural mb-0">STARKIN FINANCE</span>
+            <Sparkles className="text-secondary w-4 h-4 lg:w-5 lg:h-5 shadow-neon-secondary" />
+            <span className="label-architectural mb-0 text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Gastos <span className="text-secondary">Variáveis</span></h1>
+          <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Gastos <span className="text-secondary">Variáveis</span></h1>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 relative z-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-12 relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-6 bg-surface-container-low border-white/5"
+          className="glass-card p-4 lg:p-6 bg-surface-container-low border-white/5"
         >
-          <span className="label-architectural text-white/40 block mb-2">Total do Período</span>
-          <div className="text-3xl font-extrabold">{formatBRL(stats.total)}</div>
+          <span className="label-architectural text-white/40 block mb-1 text-[10px]">Total do Período</span>
+          <div className="text-xl lg:text-3xl font-extrabold">{formatBRL(stats.total)}</div>
         </motion.div>
 
         <Button 
-          className="h-full min-h-[100px] text-lg font-extrabold shadow-neon-primary" 
+          className="h-full min-h-[80px] lg:min-h-[100px] text-base lg:text-lg font-extrabold shadow-neon-primary" 
           onClick={() => setIsModalOpen(true)}
         >
-          <Plus className="w-6 h-6 mr-2" />
+          <Plus className="w-5 h-5 lg:w-6 lg:h-6 mr-2" />
           Lançar Gasto
         </Button>
       </div>
@@ -203,31 +203,31 @@ export default function VariableExpenses() {
                 transition={{ delay: index * 0.03 }}
                 className="group relative"
               >
-                <div className="glass-card px-8 py-6 flex items-center justify-between bg-surface-container-low border-white/5 transition-all hover:bg-surface-container-high hover:translate-x-1">
-                  <div className="flex items-center gap-8">
+                <div className="glass-card px-4 lg:px-8 py-3 lg:py-6 flex items-center justify-between bg-surface-container-low border-white/5 transition-all hover:bg-surface-container-high">
+                  <div className="flex items-center gap-3 lg:gap-8 min-w-0">
                     {/* Date Badge */}
-                    <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-white/5 border border-white/10 shrink-0">
-                      <span className="text-[10px] font-black text-white/30 uppercase leading-none mb-1">
+                    <div className="flex flex-col items-center justify-center w-10 h-10 lg:w-14 lg:h-14 rounded-xl bg-white/5 border border-white/10 shrink-0">
+                      <span className="text-[8px] lg:text-[9px] font-black text-white/30 uppercase leading-none mb-0.5">
                         {format(parseISO(expense.date), 'MMM', { locale: ptBR })}
                       </span>
-                      <span className="text-xl font-black text-white leading-none">
+                      <span className="text-base lg:text-xl font-black text-white leading-none">
                         {format(parseISO(expense.date), 'dd')}
                       </span>
                     </div>
 
-                    <div>
-                      <h3 className="font-bold text-xl text-white mb-1 group-hover:text-secondary transition-colors">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-sm lg:text-xl text-white mb-0.5 group-hover:text-secondary transition-colors truncate">
                         {expense.name}
                       </h3>
-                      <div className="flex flex-wrap gap-3 items-center">
+                      <div className="flex flex-wrap gap-2 lg:gap-3 items-center">
                         {expense.categories && (
-                          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5 bg-white/5" style={{ color: expense.categories.color_hex }}>
+                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] lg:text-[10px] font-black uppercase tracking-widest border border-white/5 bg-white/5" style={{ color: expense.categories.color_hex }}>
                             <Tag className="w-3 h-3" />
                             {expense.categories.name}
                           </span>
                         )}
                         {expense.obs && (
-                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                          <span className="flex items-center gap-1.5 text-[8px] font-bold text-white/30 uppercase tracking-widest hidden lg:flex">
                             <FileText className="w-3 h-3" />
                             {expense.obs}
                           </span>
@@ -236,25 +236,25 @@ export default function VariableExpenses() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-10">
+                  <div className="flex items-center gap-3 lg:gap-10 shrink-0">
                     <div className="text-right">
-                      <div className="text-2xl font-black text-white tracking-tighter">
+                      <div className="text-base lg:text-2xl font-black text-white tracking-tighter whitespace-nowrap">
                         {formatBRL(expense.value)}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => handleEdit(expense)}
-                        className="p-3 rounded-xl hover:bg-white/10 text-white/20 hover:text-white transition-all active:scale-95"
+                        className="p-2 rounded-xl hover:bg-white/10 text-white/30 hover:text-white transition-all active:scale-95 touch-manipulation"
                       >
-                        <Pencil className="w-5 h-5" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteExpense.mutate(expense.id)}
-                        className="p-3 rounded-xl hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all active:scale-95"
+                        className="p-2 rounded-xl hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all active:scale-95 touch-manipulation"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export default function VariableExpenses() {
       {/* Modern Modal / Side Sheet for Entry */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -277,10 +277,10 @@ export default function VariableExpenses() {
               className="absolute inset-0 bg-background/90 backdrop-blur-md"
             />
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-xl glass-card bg-surface-container-high p-10 shadow-[0_32px_64px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden"
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              className="relative w-full max-w-xl glass-card bg-surface-container-high p-6 lg:p-10 shadow-[0_32px_64px_rgba(0,0,0,0.5)] border-t lg:border border-white/10 overflow-hidden rounded-t-2xl lg:rounded-2xl"
             >
               {/* Modal Accent */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 blur-[60px] -mr-16 -mt-16 rounded-full" />
@@ -301,7 +301,7 @@ export default function VariableExpenses() {
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Input 
                     label="Nome do Gasto" 
                     placeholder="Ex: Almoço, Uber, Farmácia" 
@@ -321,7 +321,7 @@ export default function VariableExpenses() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Input 
                     label="Data da Transação" 
                     type="date"

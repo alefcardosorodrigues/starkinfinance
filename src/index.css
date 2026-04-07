@@ -3,9 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-background text-white selection:bg-primary/30;
+  html, body {
+    @apply bg-background text-white selection:bg-primary/30 overflow-x-hidden;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    max-width: 100vw;
   }
 }
 

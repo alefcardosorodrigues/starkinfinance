@@ -108,19 +108,19 @@ export default function Income() {
   const totalIncome = entries?.reduce((sum, e) => sum + Number(e.amount), 0) || 0
 
   return (
-    <div className="min-h-screen bg-background text-white p-6 md:p-12 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white p-4 lg:p-12 font-sans overflow-x-hidden">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[20%] left-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 lg:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="text-primary w-5 h-5 shadow-neon-primary" />
-            <span className="label-architectural mb-0">STARKIN FINANCE</span>
+            <Sparkles className="text-primary w-4 h-4 lg:w-5 lg:h-5 shadow-neon-primary" />
+            <span className="label-architectural mb-0 text-[9px] lg:text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Gestão de <span className="text-primary">Entradas</span></h1>
+          <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Gestão de <span className="text-primary">Entradas</span></h1>
         </div>
       </header>
 
@@ -135,30 +135,30 @@ export default function Income() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="glass-card p-8 bg-secondary-gradient border-none"
+              className="glass-card p-5 lg:p-8 bg-secondary-gradient border-none"
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-white/20 rounded-md">
-                  <TrendingUp className="text-white w-6 h-6" />
+              <div className="flex justify-between items-start mb-3 lg:mb-6">
+                <div className="p-2 lg:p-3 bg-white/20 rounded-md">
+                  <TrendingUp className="text-white w-5 h-5 lg:w-6 lg:h-6" />
                 </div>
-                <span className="label-architectural text-white/60">Total Mensal</span>
+                <span className="label-architectural text-white/60 text-[10px]">Total Mensal</span>
               </div>
-              <div className="text-5xl font-extrabold tracking-tight mb-2">
-                <span className="text-white/60 text-2xl font-medium mr-2">R$</span>
+              <div className="text-2xl lg:text-5xl font-extrabold tracking-tight mb-2">
+                <span className="text-white/60 text-base lg:text-2xl font-medium mr-1 lg:mr-2">R$</span>
                 {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
-              <p className="text-white/80 text-sm font-medium tracking-wide font-mono">
-                PERÍODO: {selectedMonth + 1}/{selectedYear}
+              <p className="text-white/80 text-[10px] lg:text-sm font-medium tracking-wide font-mono">
+                {selectedMonth + 1}/{selectedYear}
               </p>
             </motion.div>
           )}
 
           <Button 
-            className="w-full h-16 text-lg" 
+            className="w-full h-14 lg:h-16 text-base lg:text-lg font-extrabold shadow-neon-secondary border-none" 
             onClick={() => setIsModalOpen(true)}
             disabled={isLoading}
           >
-            <Plus className="w-6 h-6 mr-2" />
+            <Plus className="w-5 h-5 lg:w-6 lg:h-6 mr-2" />
             Nova Entrada
           </Button>
         </div>
@@ -192,20 +192,20 @@ export default function Income() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="glass-card px-6 py-4 flex items-center justify-between group"
+                  className="glass-card px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between group border-white/5"
                 >
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-3 lg:gap-6 min-w-0">
                     <div className={clsx(
-                      "w-12 h-12 rounded-md flex items-center justify-center font-bold",
+                      "w-8 h-8 lg:w-12 lg:h-12 rounded-md flex items-center justify-center font-bold shrink-0 text-xs lg:text-sm shadow-inner",
                       entry.type === 'Salário' ? "bg-primary/20 text-primary border border-primary/20" :
                       entry.type === 'Vale Refeição' ? "bg-secondary/20 text-secondary border border-secondary/20" :
                       "bg-tertiary/20 text-tertiary border border-tertiary/20"
                     )}>
                       {entry.type[0]}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-white text-lg">{entry.description}</h3>
-                      <div className="flex gap-3 text-xs font-bold uppercase tracking-wider text-white/40">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-white text-sm lg:text-lg truncate mb-0.5">{entry.description}</h3>
+                      <div className="flex gap-2 lg:gap-3 text-[9px] lg:text-xs font-bold uppercase tracking-wider text-white/30 flex-wrap">
                         <span>{formatDate(entry.date)}</span>
                         <span>•</span>
                         <span>{entry.type}</span>
@@ -213,24 +213,24 @@ export default function Income() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 lg:gap-6 shrink-0">
                     <div className="text-right">
-                      <div className="text-xl font-extrabold text-white">
+                      <div className="text-base lg:text-xl font-extrabold text-white whitespace-nowrap">
                         {formatBRL(entry.amount)}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
                       <button 
                         onClick={() => handleEdit(entry)}
-                        className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-primary/10 text-white/20 hover:text-primary transition-all"
+                        className="p-2 rounded-md hover:bg-primary/10 text-white/30 hover:text-primary transition-all touch-manipulation"
                       >
-                        <Pencil className="w-5 h-5" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteEntry.mutate(entry.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 rounded-md hover:bg-tertiary/10 text-white/20 hover:text-tertiary transition-all"
+                        className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all touch-manipulation"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -244,7 +244,7 @@ export default function Income() {
       {/* Entry Modal (Add/Edit) */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
+          <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-6">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -256,7 +256,7 @@ export default function Income() {
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
-              className="relative w-full max-w-lg bg-surface-container-high rounded-t-2xl md:rounded-2xl p-8 shadow-2xl border-t border-white/10 md:border-none"
+              className="relative w-full max-w-lg bg-surface-container-high rounded-t-2xl lg:rounded-2xl p-6 lg:p-10 shadow-2xl border-t border-white/10 lg:border-none"
             >
               <h3 className="text-2xl font-extrabold mb-8 flex items-center gap-3">
                 {editingEntry ? <Pencil className="text-primary w-6 h-6" /> : <Plus className="text-primary w-6 h-6" />}

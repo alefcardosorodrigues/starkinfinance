@@ -240,32 +240,32 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-4 md:p-10 space-y-10 max-w-7xl mx-auto">
+    <div className="p-3 lg:p-10 space-y-8 lg:space-y-10 max-w-7xl mx-auto overflow-x-hidden">
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2">Controle Estratégico</h1>
+          <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight mb-1">Controle Estratégico</h1>
           <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-[10px]">Visão Geral de Saúde Financeira</p>
         </div>
         
-        <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-lg border border-white/5 shadow-inner">
+        <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-lg border border-white/5 shadow-inner self-start lg:self-auto">
           <div className={clsx(
-            "px-4 py-2 rounded-md font-bold text-sm tracking-widest uppercase transition-all duration-500",
+            "px-3 lg:px-4 py-2 rounded-md font-bold text-xs lg:text-sm tracking-widest uppercase transition-all duration-500",
             isLoading ? "bg-white/5 text-transparent" : (totals.balance >= 0 ? "bg-primary/20 text-primary shadow-neon-primary" : "bg-tertiary/20 text-tertiary shadow-neon-tertiary")
           )}>
-            {isLoading ? <Skeleton className="h-5 w-40" /> : `SALDO DISPONÍVEL: ${formatCurrency(totals.balance)}`}
+            {isLoading ? <Skeleton className="h-5 w-40" /> : `SALDO: ${formatCurrency(totals.balance)}`}
           </div>
         </div>
       </header>
 
       {/* Main Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
         {[
           { label: 'Entradas', value: totals.income, icon: TrendingUp, color: 'primary' },
           { label: 'Gastos Fixos', value: totals.fixed, icon: Receipt, color: 'secondary' },
           { label: 'Variáveis', value: totals.variable, icon: Target, color: 'tertiary' },
           { label: 'Parcelamentos', value: totals.installments, icon: CreditCard, color: 'secondary' },
-          { label: 'Total de Gastos', value: totals.totalExpenses, icon: TrendingDown, color: 'tertiary', highlight: true },
+          { label: 'Total Gastos', value: totals.totalExpenses, icon: TrendingDown, color: 'tertiary', highlight: true },
         ].map((item, idx) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -273,25 +273,25 @@ export default function Dashboard() {
             transition={{ delay: idx * 0.1 }}
             key={item.label}
             className={clsx(
-              "glass p-6 rounded-xl border transition-all duration-300 group",
+              "glass p-4 lg:p-6 rounded-xl border transition-all duration-300 group",
               item.highlight ? "border-tertiary/30 bg-tertiary/5" : "border-white/5"
             )}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div className={clsx(
-                "w-10 h-10 rounded-lg flex items-center justify-center border transition-all duration-300",
+                "w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center border transition-all duration-300",
                 item.color === 'primary' ? "bg-primary/20 border-primary/20 text-primary group-hover:shadow-neon-primary" :
                 item.color === 'secondary' ? "bg-secondary/20 border-secondary/20 text-secondary group-hover:shadow-neon-secondary" :
                 "bg-tertiary/20 border-tertiary/20 text-tertiary group-hover:shadow-neon-tertiary"
               )}>
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
             </div>
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">{item.label}</p>
+            <p className="text-[9px] lg:text-[10px] font-bold text-white/30 uppercase tracking-[0.15em] mb-1 leading-tight">{item.label}</p>
             {isLoading ? (
-              <Skeleton className="h-7 w-32 mt-1" />
+              <Skeleton className="h-6 w-24 mt-1" />
             ) : (
-              <h3 className="text-xl font-extrabold tracking-tight truncate">
+              <h3 className="text-base lg:text-xl font-extrabold tracking-tight truncate">
                 {formatCurrency(item.value)}
               </h3>
             )}
@@ -300,9 +300,9 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Dual Track */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
         <div className="relative">
-          {isLoading && <Skeleton className="absolute inset-x-0 h-80 rounded-xl" />}
+          {isLoading && <Skeleton className="absolute inset-x-0 h-60 lg:h-80 rounded-xl" />}
           <div className={isLoading ? 'opacity-0' : ''}>
             <ComparisonChart 
               income={totals.income} 
@@ -311,7 +311,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="relative">
-          {isLoading && <Skeleton className="absolute inset-x-0 h-80 rounded-xl" />}
+          {isLoading && <Skeleton className="absolute inset-x-0 h-60 lg:h-80 rounded-xl" />}
           <div className={isLoading ? 'opacity-0' : ''}>
             <ExpensesPieChart 
               data={categoryStates.map(cat => ({
@@ -326,7 +326,7 @@ export default function Dashboard() {
 
       {/* Budget Table */}
       <section className="glass rounded-2xl border border-white/5 overflow-hidden">
-        <div className="p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+        <div className="p-4 lg:p-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
           <div className="flex items-center gap-4 cursor-pointer group/header" onClick={() => setIsTableExpanded(!isTableExpanded)}>
             <div className={clsx(
               "w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 transition-all group-hover/header:border-primary/30 group-hover/header:bg-primary/5",
@@ -353,14 +353,14 @@ export default function Dashboard() {
               transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
               className="overflow-hidden"
             >
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full text-left border-collapse min-w-[600px] lg:min-w-0">
                   <thead>
                     <tr className="bg-white/[0.01]">
-                      <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Categoria</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Valor Esperado</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Valor Gasto</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Restam</th>
+                      <th className="px-4 lg:px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Categoria</th>
+                      <th className="px-4 lg:px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Valor Esperado</th>
+                      <th className="px-4 lg:px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Valor Gasto</th>
+                      <th className="px-4 lg:px-6 py-4 text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Restam</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
