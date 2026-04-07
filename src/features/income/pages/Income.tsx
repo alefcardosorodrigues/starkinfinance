@@ -108,19 +108,19 @@ export default function Income() {
   const totalIncome = entries?.reduce((sum, e) => sum + Number(e.amount), 0) || 0
 
   return (
-    <div className="min-h-screen bg-background text-white p-6 md:p-12 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white p-4 lg:p-12 font-sans overflow-x-hidden">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[20%] left-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
       </div>
 
-      <header className="flex justify-between items-center mb-8 md:mb-12 relative z-10">
+      <header className="flex justify-between items-center mb-8 lg:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="text-primary w-4 h-4 md:w-5 md:h-5 shadow-neon-primary" />
-            <span className="label-architectural mb-0 text-[9px] md:text-[10px]">STARKIN FINANCE</span>
+            <Sparkles className="text-primary w-4 h-4 lg:w-5 lg:h-5 shadow-neon-primary" />
+            <span className="label-architectural mb-0 text-[9px] lg:text-[10px]">STARKIN FINANCE</span>
           </div>
-          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Gestão de <span className="text-primary">Entradas</span></h1>
+          <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Gestão de <span className="text-primary">Entradas</span></h1>
         </div>
       </header>
 

@@ -115,11 +115,11 @@ export default function FixedExpenses() {
   }, [expenses])
 
   return (
-    <div className="min-h-screen bg-background text-white p-6 md:p-12 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white p-3 lg:p-12 font-sans overflow-x-hidden">
       {/* Background Lighting */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] bg-tertiary/5 rounded-full blur-[100px]" />
+        <div className="absolute top-[20%] left-[-10%] w-[300px] lg:w-[400px] h-[300px] lg:h-[400px] bg-primary/5 rounded-full blur-[80px] lg:blur-[100px]" />
+        <div className="absolute bottom-[10%] right-[-10%] w-[300px] lg:w-[400px] h-[300px] lg:h-[400px] bg-tertiary/5 rounded-full blur-[80px] lg:blur-[100px]" />
       </div>
 
       <header className="flex justify-between items-center mb-8 lg:mb-12 relative z-10">
@@ -132,7 +132,7 @@ export default function FixedExpenses() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-12 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-12 relative z-10">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -203,7 +203,7 @@ export default function FixedExpenses() {
                   expense.is_paid ? "bg-primary/5 border-primary/20" : "bg-surface-container-low border-white/5"
                 )}
               >
-                <div className="flex items-center gap-3 lg:gap-6 min-w-0">
+                <div className="flex items-center gap-2 lg:gap-6 min-w-0">
                   <button 
                     onClick={() => togglePaid.mutate({ id: expense.id, is_paid: !expense.is_paid })}
                     className="p-1 transition-transform active:scale-90 shrink-0"
@@ -216,11 +216,11 @@ export default function FixedExpenses() {
                   </button>
                   
                   {/* Date Badge */}
-                  <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 shrink-0">
-                    <span className="text-[9px] font-black text-white/30 uppercase leading-none mb-1">
+                  <div className="flex flex-col items-center justify-center w-10 lg:w-12 h-10 lg:h-12 rounded-xl bg-white/5 border border-white/10 shrink-0">
+                    <span className="text-[8px] lg:text-[9px] font-black text-white/30 uppercase leading-none mb-1">
                       {format(new Date(selectedYear, selectedMonth, 1), 'MMM', { locale: ptBR })}
                     </span>
-                    <span className="text-lg font-black text-white leading-none">
+                    <span className="text-base lg:text-lg font-black text-white leading-none">
                       {String(expense.due_day).padStart(2, '0')}
                     </span>
                   </div>
@@ -243,7 +243,7 @@ export default function FixedExpenses() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 lg:gap-8 shrink-0">
+                <div className="flex items-center gap-2 lg:gap-8 shrink-0">
                   <div className="text-right">
                     <div className={clsx(
                       "text-base lg:text-xl font-extrabold transition-all whitespace-nowrap",

@@ -123,11 +123,11 @@ export default function VariableExpenses() {
   }, [expenses])
 
   return (
-    <div className="min-h-screen bg-background text-white p-6 md:p-12 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white p-4 lg:p-12 font-sans overflow-x-hidden">
       {/* Background Lighting */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[20%] left-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute top-[10%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-secondary/5 rounded-full blur-[80px] lg:blur-[120px]" />
+        <div className="absolute bottom-[20%] left-[-10%] w-[300px] lg:w-[400px] h-[300px] lg:h-[400px] bg-primary/5 rounded-full blur-[80px] lg:blur-[100px]" />
       </div>
 
       <header className="flex justify-between items-center mb-8 lg:mb-12 relative z-10">
@@ -301,7 +301,7 @@ export default function VariableExpenses() {
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Input 
                     label="Nome do Gasto" 
                     placeholder="Ex: Almoço, Uber, Farmácia" 
@@ -321,7 +321,7 @@ export default function VariableExpenses() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Input 
                     label="Data da Transação" 
                     type="date"
