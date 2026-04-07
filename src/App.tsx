@@ -72,9 +72,9 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background lg:flex">
       <Navigation />
-      <main className="flex-1 lg:ml-64 min-h-screen pt-16 lg:pt-0 pb-20 lg:pb-0">
+      <main className="w-full lg:ml-64 min-h-screen pt-16 lg:pt-0 pb-20 lg:pb-0 overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
