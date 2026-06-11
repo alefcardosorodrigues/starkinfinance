@@ -54,6 +54,11 @@ export default function Dashboard() {
 
   const [isTableExpanded, setIsTableExpanded] = useState(true)
 
+  const prevMonthDate = new Date(selectedYear, selectedMonth, 1)
+  prevMonthDate.setMonth(prevMonthDate.getMonth() - 1)
+  const prevMonth = prevMonthDate.getMonth()
+  const prevYear = prevMonthDate.getFullYear()
+
   // 1. Fetch Categories
   const { data: categories = [], isLoading: loadCats } = useQuery({
     queryKey: ['categories'],
@@ -145,6 +150,50 @@ export default function Dashboard() {
     }
   })
 
+  // 7. Fetch Previous Month Expenses for Default Budgets
+  const { data: prevFixedExpenses = [], isLoading: loadPrevFix } = useQuery({
+    queryKey: ['dashboard-fixed-expenses', prevMonth, prevYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('fixed_expenses')
+        .select('id, amount, category_id, month, year')
+        .eq('month', prevMonth)
+        .eq('year', prevYear)
+      if (error) throw error
+      return data
+    }
+  })
+
+  const { data: prevVariableExpenses = [], isLoading: loadPrevVar } = useQuery({
+    queryKey: ['dashboard-variable-expenses', prevMonth, prevYear],
+    queryFn: async () => {
+      const startDate = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-01`
+      const lastDay = new Date(prevYear, prevMonth + 1, 0).getDate()
+      const endDate = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+      
+      const { data, error } = await supabase
+        .from('variable_expenses')
+        .select('id, value, category_id, date')
+        .gte('date', startDate)
+        .lte('date', endDate)
+      if (error) throw error
+      return data
+    }
+  })
+
+  const { data: prevInstallments = [], isLoading: loadPrevInst } = useQuery({
+    queryKey: ['dashboard-installments', prevMonth, prevYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('installments')
+        .select('id, amount, category_id, month, year')
+        .eq('month', prevMonth)
+        .eq('year', prevYear)
+      if (error) throw error
+      return data
+    }
+  })
+
   // Mutations
   const upsertBudget = useMutation({
     mutationFn: async ({ categoryId, amount }: { categoryId: string, amount: number }) => {
@@ -170,25 +219,7 @@ export default function Dashboard() {
   })
 
   // Loading state consolidado
-  const isLoading = loadCats || loadInc || loadFix || loadVar || loadInst || loadBdgt
-
-  // Consolidate Totals
-  const totals = useMemo(() => {
-    const totalIncome = incomes.reduce((acc, curr) => acc + Number(curr.amount), 0)
-    const totalFixed = fixedExpenses.reduce((acc, curr) => acc + Number(curr.amount), 0)
-    const totalVariable = variableExpenses.reduce((acc, curr) => acc + Number(curr.value), 0)
-    const totalInstallments = installments.reduce((acc, curr) => acc + Number(curr.amount), 0)
-    const totalExpenses = totalFixed + totalVariable + totalInstallments
-
-    return {
-      income: totalIncome,
-      fixed: totalFixed,
-      variable: totalVariable,
-      installments: totalInstallments,
-      totalExpenses,
-      balance: totalIncome - totalExpenses
-    }
-  }, [incomes, fixedExpenses, variableExpenses, installments])
+  const isLoading = loadCats || loadInc || loadFix || loadVar || loadInst || loadBdgt || loadPrevFix || loadPrevVar || loadPrevInst
 
   // Consolidate by Category
   const categoryStates = useMemo(() => {
@@ -206,7 +237,23 @@ export default function Dashboard() {
         .reduce((acc, curr) => acc + Number(curr.amount), 0)
       
       const spent = fixed + variable + installment
-      const expected = budgets.find(b => b.category_id === cat.id)?.amount || 0
+
+      const prevFixed = prevFixedExpenses
+        .filter(e => e.category_id === cat.id)
+        .reduce((acc, curr) => acc + Number(curr.amount), 0)
+      
+      const prevVariable = prevVariableExpenses
+        .filter(e => e.category_id === cat.id)
+        .reduce((acc, curr) => acc + Number(curr.value), 0)
+      
+      const prevInstallment = prevInstallments
+        .filter(e => e.category_id === cat.id)
+        .reduce((acc, curr) => acc + Number(curr.amount), 0)
+      
+      const prevSpent = prevFixed + prevVariable + prevInstallment
+
+      const explicitExpected = budgets.find(b => b.category_id === cat.id)?.amount
+      const expected = explicitExpected !== undefined ? explicitExpected : prevSpent
       
       return {
         ...cat,
@@ -215,7 +262,29 @@ export default function Dashboard() {
         remaining: expected - spent
       }
     })
-  }, [categories, fixedExpenses, variableExpenses, installments, budgets])
+  }, [categories, fixedExpenses, variableExpenses, installments, budgets, prevFixedExpenses, prevVariableExpenses, prevInstallments])
+
+  // Consolidate Totals
+  const totals = useMemo(() => {
+    const totalIncome = incomes.reduce((acc, curr) => acc + Number(curr.amount), 0)
+    const totalFixed = fixedExpenses.reduce((acc, curr) => acc + Number(curr.amount), 0)
+    const totalVariable = variableExpenses.reduce((acc, curr) => acc + Number(curr.value), 0)
+    const totalInstallments = installments.reduce((acc, curr) => acc + Number(curr.amount), 0)
+    const totalExpenses = totalFixed + totalVariable + totalInstallments
+
+    const reservedBudget = categoryStates.reduce((acc, cat) => acc + Math.max(0, cat.expected - cat.spent), 0)
+    const effectiveExpenses = totalExpenses + reservedBudget
+
+    return {
+      income: totalIncome,
+      fixed: totalFixed,
+      variable: totalVariable,
+      installments: totalInstallments,
+      totalExpenses,
+      effectiveExpenses,
+      balance: totalIncome - effectiveExpenses
+    }
+  }, [incomes, fixedExpenses, variableExpenses, installments, categoryStates])
 
   const filteredCategoryStates = useMemo(() => {
     return categoryStates.filter(cat => cat.spent > 0)
@@ -306,7 +375,7 @@ export default function Dashboard() {
           <div className={isLoading ? 'opacity-0' : ''}>
             <ComparisonChart 
               income={totals.income} 
-              expenses={totals.totalExpenses} 
+              expenses={totals.effectiveExpenses} 
             />
           </div>
         </div>
