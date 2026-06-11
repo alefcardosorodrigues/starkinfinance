@@ -86,7 +86,38 @@ export default function Dashboard() {
         .gte('date', startDate)
         .lte('date', endDate)
       if (error) throw error
-      return data
+
+      if (data && data.length > 0) {
+        return data
+      }
+
+      // Fallback
+      const prevMonthDate = new Date(selectedYear, selectedMonth, 1)
+      prevMonthDate.setMonth(prevMonthDate.getMonth() - 1)
+      const prevMonth = prevMonthDate.getMonth()
+      const prevYear = prevMonthDate.getFullYear()
+
+      const prevStartDate = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-01`
+      const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate()
+      const prevEndDate = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(prevLastDay).padStart(2, '0')}`
+
+      const { data: prevData, error: prevError } = await supabase
+        .from('entries')
+        .select('id, amount, date')
+        .gte('date', prevStartDate)
+        .lte('date', prevEndDate)
+      if (prevError) throw prevError
+
+      return (prevData || []).map(entry => {
+        const entryDate = new Date(entry.date)
+        entryDate.setMonth(selectedMonth)
+        entryDate.setFullYear(selectedYear)
+        const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`
+        return {
+          ...entry,
+          date: dateStr
+        }
+      })
     }
   })
 

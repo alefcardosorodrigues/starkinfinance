@@ -34,17 +34,17 @@ const parseCurrencyToNumber = (value: string) => {
 
 export default function Income() {
   const { selectedMonth, selectedYear } = useMonth()
-  const { 
-    entries, 
-    isLoading, 
-    addEntry, 
-    updateEntry, 
-    deleteEntry 
+  const {
+    entries,
+    isLoading,
+    addEntry,
+    updateEntry,
+    deleteEntry
   } = useIncome(selectedMonth, selectedYear)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null)
-  
+
   // Form State
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('R$ 0,00')
@@ -131,7 +131,7 @@ export default function Income() {
               <div className="h-40 bg-surface-container-low rounded-2xl" />
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -153,8 +153,8 @@ export default function Income() {
             </motion.div>
           )}
 
-          <Button 
-            className="w-full h-14 lg:h-16 text-base lg:text-lg font-extrabold shadow-neon-secondary border-none" 
+          <Button
+            className="w-full h-14 lg:h-16 text-base lg:text-lg font-extrabold shadow-neon-secondary border-none"
             onClick={() => setIsModalOpen(true)}
             disabled={isLoading}
           >
@@ -198,21 +198,29 @@ export default function Income() {
                     <div className={clsx(
                       "w-8 h-8 lg:w-12 lg:h-12 rounded-md flex items-center justify-center font-bold shrink-0 text-xs lg:text-sm shadow-inner",
                       entry.type === 'Salário' ? "bg-primary/20 text-primary border border-primary/20" :
-                      entry.type === 'Vale Refeição' ? "bg-secondary/20 text-secondary border border-secondary/20" :
-                      "bg-tertiary/20 text-tertiary border border-tertiary/20"
+                        entry.type === 'Vale Refeição' ? "bg-secondary/20 text-secondary border border-secondary/20" :
+                          "bg-tertiary/20 text-tertiary border border-tertiary/20"
                     )}>
                       {entry.type[0]}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-white text-sm lg:text-lg truncate mb-0.5">{entry.description}</h3>
+                      <h3 className="font-bold text-white text-sm lg:text-lg truncate mb-0.5 flex items-center gap-2">
+                        {entry.description}
+                        {entry.isFallback && (
+                          <span className="text-[9px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                            Previsto
+                          </span>
+                        )}
+                      </h3>
                       <div className="flex gap-2 lg:gap-3 text-[9px] lg:text-xs font-bold uppercase tracking-wider text-white/30 flex-wrap">
                         <span>{formatDate(entry.date)}</span>
                         <span>•</span>
                         <span>{entry.type}</span>
                       </div>
                     </div>
+
                   </div>
-                  
+
                   <div className="flex items-center gap-2 lg:gap-6 shrink-0">
                     <div className="text-right">
                       <div className="text-base lg:text-xl font-extrabold text-white whitespace-nowrap">
@@ -220,13 +228,13 @@ export default function Income() {
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
-                      <button 
+                      <button
                         onClick={() => handleEdit(entry)}
                         className="p-2 rounded-md hover:bg-primary/10 text-white/30 hover:text-primary transition-all touch-manipulation"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => deleteEntry.mutate(entry.id)}
                         className="p-2 rounded-md hover:bg-tertiary/10 text-white/30 hover:text-tertiary transition-all touch-manipulation"
                       >
@@ -262,20 +270,20 @@ export default function Income() {
                 {editingEntry ? <Pencil className="text-primary w-6 h-6" /> : <Plus className="text-primary w-6 h-6" />}
                 {editingEntry ? 'Editar' : 'Nova'} <span className="text-primary">Entrada</span>
               </h3>
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
-                <Input 
-                  label="Descrição" 
-                  placeholder="Ex: Salário Mensal" 
+                <Input
+                  label="Descrição"
+                  placeholder="Ex: Salário Mensal"
                   autoFocus
                   required
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                 />
-                
+
                 <div className="grid grid-cols-2 gap-4">
-                  <Input 
-                    label="Valor (R$)" 
+                  <Input
+                    label="Valor (R$)"
                     type="text"
                     placeholder="R$ 0,00"
                     required
@@ -284,7 +292,7 @@ export default function Income() {
                   />
                   <div>
                     <label className="label-architectural">Tipo</label>
-                    <select 
+                    <select
                       className="input-field w-full h-[47.5px] disabled:opacity-50 disabled:cursor-not-allowed"
                       value={type}
                       onChange={e => setType(e.target.value as EntryType)}
@@ -296,8 +304,8 @@ export default function Income() {
                   </div>
                 </div>
 
-                <Input 
-                  label="Data do Recebimento" 
+                <Input
+                  label="Data do Recebimento"
                   type="date"
                   required
                   value={date}
@@ -305,17 +313,17 @@ export default function Income() {
                 />
 
                 <div className="flex gap-4 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="secondary" 
+                  <Button
+                    type="button"
+                    variant="secondary"
                     className="flex-1"
                     onClick={handleCloseModal}
                   >
                     Cancelar
                   </Button>
-                  <Button 
-                    type="submit" 
-                    className="flex-1" 
+                  <Button
+                    type="submit"
+                    className="flex-1"
                     isLoading={addEntry.isPending || updateEntry.isPending}
                   >
                     {editingEntry ? 'Salvar Alterações' : 'Salvar Entrada'}

@@ -6,4 +6,6 @@ export interface Entry {
   amount: number
   date: string
   type: EntryType
+  isFallback?: boolean
 }
+
