@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useVariableExpenses } from '../hooks/useVariableExpenses'
 import type { VariableExpense, Category } from '../types'
 import { Button } from '@/components/elements/Button'
@@ -57,7 +57,10 @@ export default function VariableExpenses() {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<VariableExpense | null>(null)
+  const [keepOpen, setKeepOpen] = useState(false)
   
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
   // Form State
   const [name, setName] = useState('')
   const [value, setValue] = useState('R$ 0,00')
@@ -82,6 +85,7 @@ export default function VariableExpenses() {
     setEditingExpense(null)
     setName('')
     setValue('R$ 0,00')
+    setKeepOpen(false)
     const now = new Date()
     const isCurrentContext = now.getMonth() === selectedMonth && now.getFullYear() === selectedYear
     if (isCurrentContext) {
@@ -105,10 +109,20 @@ export default function VariableExpenses() {
     try {
       if (editingExpense) {
         await updateExpense.mutateAsync({ id: editingExpense.id, updates: payload })
+        handleCloseModal()
       } else {
         await addExpense.mutateAsync(payload)
+        if (keepOpen) {
+          setName('')
+          setValue('R$ 0,00')
+          setObs('')
+          setTimeout(() => {
+            nameInputRef.current?.focus()
+          }, 50)
+        } else {
+          handleCloseModal()
+        }
       }
-      handleCloseModal()
     } catch (error) {
       console.error(error)
     }
@@ -303,6 +317,7 @@ export default function VariableExpenses() {
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <Input 
+                    ref={nameInputRef}
                     label="Nome do Gasto" 
                     placeholder="Ex: Almoço, Uber, Farmácia" 
                     autoFocus
@@ -358,6 +373,21 @@ export default function VariableExpenses() {
                     onChange={e => setObs(e.target.value)}
                   />
                 </div>
+
+                {!editingExpense && (
+                  <div className="flex items-center gap-2 px-1">
+                    <input
+                      type="checkbox"
+                      id="keepOpen"
+                      checked={keepOpen}
+                      onChange={e => setKeepOpen(e.target.checked)}
+                      className="w-4 h-4 rounded border-white/10 bg-white/5 text-secondary focus:ring-secondary focus:ring-offset-background"
+                    />
+                    <label htmlFor="keepOpen" className="text-xs font-bold text-white/60 cursor-pointer select-none">
+                      Lançar outro gasto em seguida
+                    </label>
+                  </div>
+                )}
 
                 <div className="flex gap-4 pt-6">
                   <Button 
