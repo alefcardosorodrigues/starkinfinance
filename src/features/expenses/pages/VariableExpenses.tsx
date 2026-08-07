@@ -22,6 +22,8 @@ import {
 import { useMonth } from '@/contexts/MonthContext'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { parseBankStatement, ParsedExpense } from '../services/pdfParser'
+import { ImportInvoiceModal } from '../components/ImportInvoiceModal'
 
 
 
@@ -51,13 +53,20 @@ export default function VariableExpenses() {
     categories, 
     addExpense, 
     updateExpense, 
-    deleteExpense 
+    deleteExpense,
+    addMultipleExpenses
   } = useVariableExpenses(selectedMonth, selectedYear)
 
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<VariableExpense | null>(null)
   const [keepOpen, setKeepOpen] = useState(false)
+
+  // PDF Import State
+  const [isImporting, setIsImporting] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [parsedExpenses, setParsedExpenses] = useState<ParsedExpense[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const nameInputRef = useRef<HTMLInputElement>(null)
 
@@ -128,6 +137,45 @@ export default function VariableExpenses() {
     }
   }
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsImporting(true)
+      const extracted = await parseBankStatement(file, selectedYear)
+      setParsedExpenses(extracted)
+      setIsImportModalOpen(true)
+    } catch (error) {
+      console.error('Erro ao importar PDF:', error)
+      alert('Houve um erro ao processar o PDF da fatura.')
+    } finally {
+      setIsImporting(false)
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleSaveImport = async (expensesToSave: Partial<VariableExpense>[]) => {
+    try {
+      // @ts-ignore
+      if (addMultipleExpenses) {
+        // @ts-ignore
+        await addMultipleExpenses.mutateAsync(expensesToSave)
+      } else {
+        // fallback if useVariableExpenses didn't return addMultipleExpenses due to typescript issues
+        for (const exp of expensesToSave) {
+          await addExpense.mutateAsync(exp)
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao salvar importação', error)
+      throw error
+    }
+  }
+
   const stats = useMemo(() => {
     if (!expenses) return { total: 0, count: 0, max: 0 }
     const total = expenses.reduce((sum, e) => sum + Number(e.value), 0)
@@ -164,13 +212,34 @@ export default function VariableExpenses() {
           <div className="text-xl lg:text-3xl font-extrabold">{formatBRL(stats.total)}</div>
         </motion.div>
 
-        <Button 
-          className="h-full min-h-[80px] lg:min-h-[100px] text-base lg:text-lg font-extrabold shadow-neon-primary" 
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus className="w-5 h-5 lg:w-6 lg:h-6 mr-2" />
-          Lançar Gasto
-        </Button>
+        <div className="flex gap-4 h-full min-h-[80px] lg:min-h-[100px]">
+          <input 
+            type="file" 
+            accept="application/pdf" 
+            hidden 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+          />
+          <Button 
+            variant="secondary"
+            className="flex-1 h-full text-sm lg:text-base font-extrabold bg-surface-container-low border-white/5 hover:bg-surface-container-high" 
+            onClick={() => fileInputRef.current?.click()}
+            isLoading={isImporting}
+          >
+            <FileText className="w-5 h-5 lg:w-6 lg:h-6 mr-2 text-white/60" />
+            <span className="hidden sm:inline">Importar Fatura</span>
+            <span className="sm:hidden">Importar</span>
+          </Button>
+
+          <Button 
+            className="flex-1 h-full text-sm lg:text-base font-extrabold shadow-neon-primary" 
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Plus className="w-5 h-5 lg:w-6 lg:h-6 mr-2" />
+            <span className="hidden sm:inline">Lançar Gasto</span>
+            <span className="sm:hidden">Lançar</span>
+          </Button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -409,6 +478,20 @@ export default function VariableExpenses() {
               </form>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isImportModalOpen && (
+          <ImportInvoiceModal
+            isOpen={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            expenses={parsedExpenses}
+            categories={categories}
+            onSave={handleSaveImport}
+            // @ts-ignore
+            isSaving={addMultipleExpenses?.isPending || false}
+          />
         )}
       </AnimatePresence>
     </div>
