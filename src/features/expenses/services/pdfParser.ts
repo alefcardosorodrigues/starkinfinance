@@ -14,7 +14,7 @@ export interface ParsedExpense {
 
 export interface BankStatementParser {
   name: string;
-  parse(text: string, currentYear: number): ParsedExpense[];
+  parse(text: string, currentMonth: number, currentYear: number): ParsedExpense[];
 }
 
 const MONTH_MAP: Record<string, number> = {
@@ -24,7 +24,7 @@ const MONTH_MAP: Record<string, number> = {
 export class NubankParser implements BankStatementParser {
   name = 'Nubank';
 
-  parse(text: string, currentYear: number): ParsedExpense[] {
+  parse(text: string, currentMonth: number, currentYear: number): ParsedExpense[] {
     const expenses: ParsedExpense[] = [];
     
     // Apenas analisa a parte do texto após a palavra TRANSAÇÕES para evitar pegar os resumos iniciais
@@ -78,10 +78,14 @@ export class NubankParser implements BankStatementParser {
         rawValue = -rawValue;
       }
       
-      // We assume the year is the currentYear. If month is DEC and current is JAN, it might be last year,
-      // but the user requested to use the currently selected app year as base. 
-      // We will strictly use currentYear.
-      const date = new Date(currentYear, month, day);
+      // O usuário pediu para considerar o mês/ano selecionado no aplicativo.
+      // Então mantemos o 'day' extraído, mas forçamos o mês e ano selecionados.
+      // Se o dia for maior que o último dia do mês (ex: 31 de fevereiro), o JS ajusta automaticamente,
+      // mas para garantir, podemos limitar:
+      const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const safeDay = Math.min(day, lastDayOfMonth);
+      
+      const date = new Date(currentYear, currentMonth, safeDay);
       const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
       // Create a temporary UUID-like string for list management
@@ -119,7 +123,7 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
   return fullText;
 };
 
-export const parseBankStatement = async (file: File, currentYear: number, parser: BankStatementParser = new NubankParser()): Promise<ParsedExpense[]> => {
+export const parseBankStatement = async (file: File, currentMonth: number, currentYear: number, parser: BankStatementParser = new NubankParser()): Promise<ParsedExpense[]> => {
   const text = await extractTextFromPDF(file);
-  return parser.parse(text, currentYear);
+  return parser.parse(text, currentMonth, currentYear);
 };
