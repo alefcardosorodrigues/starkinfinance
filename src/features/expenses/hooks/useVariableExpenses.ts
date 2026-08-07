@@ -85,11 +85,32 @@ export function useVariableExpenses(selectedMonth: number, selectedYear: number)
     },
   })
 
+  // Add Multiple Variable Expenses
+  const addMultipleExpenses = useMutation({
+    mutationFn: async (newExpenses: Partial<VariableExpense>[]) => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Não autenticado')
+      
+      const payload = newExpenses.map(expense => ({ ...expense, user_id: user.id }))
+      
+      const { data, error } = await supabase
+        .from('variable_expenses')
+        .insert(payload)
+        .select()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['variable-expenses'] })
+    },
+  })
+
   return {
     expenses: expensesQuery.data || [],
     isLoading: expensesQuery.isLoading || expensesQuery.isFetching,
     categories: categoriesQuery.data || [],
     addExpense,
+    addMultipleExpenses,
     updateExpense,
     deleteExpense
   }
