@@ -53,14 +53,25 @@ export function ImportInvoiceModal({ isOpen, onClose, expenses: initialExpenses,
   }
 
   const handleSave = async () => {
-    const payload = items.map(item => ({
-      name: item.name,
-      value: item.value,
-      date: item.date,
-      category_id: item.categoryId || undefined
-    }))
-    await onSave(payload)
-    onClose()
+    // Validação extra para garantir que não mandamos sem categoria se for obrigatório
+    const missingCategory = items.some(item => !item.categoryId)
+    if (missingCategory) {
+      alert('Por favor, selecione uma categoria para todos os itens antes de importar.')
+      return
+    }
+
+    try {
+      const payload = items.map(item => ({
+        name: item.name,
+        value: item.value,
+        date: item.date,
+        category_id: item.categoryId
+      }))
+      await onSave(payload)
+      onClose()
+    } catch (error) {
+      alert('Ocorreu um erro ao salvar os gastos. Tente novamente.')
+    }
   }
 
   if (!isOpen) return null
@@ -177,12 +188,12 @@ export function ImportInvoiceModal({ isOpen, onClose, expenses: initialExpenses,
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={items.length === 0}
-            className="flex-[2] h-14 bg-secondary-gradient shadow-neon-secondary text-background font-black text-lg" 
+            disabled={items.length === 0 || items.some(item => !item.categoryId)}
+            className="flex-[2] h-14 bg-secondary-gradient shadow-neon-secondary text-background font-black text-lg disabled:opacity-50" 
             isLoading={isSaving}
           >
             <Check className="w-5 h-5 mr-2" />
-            IMPORTAR {items.length} ITENS
+            {items.some(item => !item.categoryId) ? 'SELECIONE AS CATEGORIAS' : `IMPORTAR ${items.length} ITENS`}
           </Button>
         </div>
       </motion.div>

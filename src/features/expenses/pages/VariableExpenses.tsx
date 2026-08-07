@@ -143,7 +143,7 @@ export default function VariableExpenses() {
 
     try {
       setIsImporting(true)
-      const extracted = await parseBankStatement(file, selectedYear)
+      const extracted = await parseBankStatement(file, selectedMonth, selectedYear)
       setParsedExpenses(extracted)
       setIsImportModalOpen(true)
     } catch (error) {
