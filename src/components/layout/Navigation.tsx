@@ -16,14 +16,18 @@ import {
   Receipt,
   LayoutDashboard,
   ChevronDown,
-  X
+  X,
+  ShieldCheck,
+  Shield
 } from 'lucide-react'
+import * as LucideIcons from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { queryClient } from '@/main'
 import { useMonth } from '@/contexts/MonthContext'
+import { useFeatures, CORE_FEATURE_PATHS } from '@/features/access-management/hooks/useFeatures'
 
-const navItems = [
+const baseNavItems = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Entradas', icon: TrendingUp, href: '/income' },
   { label: 'Variáveis', icon: Receipt, href: '/variables' },
@@ -42,6 +46,7 @@ export default function Navigation() {
   const navigate = useNavigate()
   const { selectedMonth, selectedYear, setSelectedMonth, prevYear, nextYear } = useMonth()
   const [showMobileCalendar, setShowMobileCalendar] = useState(false)
+  const { features } = useFeatures()
 
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -60,6 +65,27 @@ export default function Navigation() {
     }
   })
 
+  const isAdmin = profile?.role === 'admin'
+
+  // Combina itens padrão com funcionalidades adicionais cadastradas
+  const dynamicItems = features
+    .filter(f => !CORE_FEATURE_PATHS.includes(f.path))
+    .filter(f => isAdmin || f.is_active_for_users)
+    .map(f => {
+      const IconComponent = (LucideIcons as any)[f.icon || 'Sparkles'] || Sparkles
+      return {
+        label: f.name,
+        icon: IconComponent,
+        href: f.path,
+        isDev: !f.is_active_for_users,
+      }
+    })
+
+  const navItems = [
+    ...baseNavItems.map(item => ({ ...item, isDev: false })),
+    ...dynamicItems,
+  ]
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     queryClient.clear()
@@ -73,7 +99,7 @@ export default function Navigation() {
       {/* ─── DESKTOP SIDEBAR (lg+) ─── */}
       <nav className="hidden lg:flex fixed left-0 top-0 h-screen w-64 glass border-r border-white/5 z-50 flex-col p-4">
         {/* Brand */}
-        <div className="flex items-center gap-3 mb-10 px-2 shrink-0">
+        <div className="flex items-center gap-3 mb-8 px-2 shrink-0">
           <div className="w-10 h-10 rounded-md bg-primary-gradient flex items-center justify-center shadow-neon-primary shrink-0">
             <Sparkles className="text-background w-6 h-6" />
           </div>
@@ -84,7 +110,7 @@ export default function Navigation() {
         </div>
 
         {/* Main Nav */}
-        <div className="space-y-2 mb-10 shrink-0">
+        <div className="space-y-1.5 mb-6 shrink-0 max-h-[38vh] overflow-y-auto pr-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href
             return (
@@ -92,12 +118,20 @@ export default function Navigation() {
                 key={item.href}
                 to={item.href}
                 className={clsx(
-                  "relative flex items-center gap-4 px-4 py-3 rounded-md transition-all duration-300 group",
+                  "relative flex items-center justify-between px-4 py-2.5 rounded-md transition-all duration-300 group",
                   isActive ? "text-primary" : "text-white/40 hover:text-white"
                 )}
               >
-                <item.icon className={clsx("w-6 h-6 shrink-0", isActive && "drop-shadow-[0_0_8px_rgba(173,198,255,0.5)]")} />
-                <span className="font-bold text-sm tracking-wide">{item.label}</span>
+                <div className="flex items-center gap-4">
+                  <item.icon className={clsx("w-5 h-5 shrink-0", isActive && "drop-shadow-[0_0_8px_rgba(173,198,255,0.5)]")} />
+                  <span className="font-bold text-sm tracking-wide">{item.label}</span>
+                </div>
+
+                {item.isDev && (
+                  <span className="text-[8px] font-extrabold tracking-widest px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                    DEV
+                  </span>
+                )}
                 
                 {isActive && (
                   <motion.div
@@ -108,6 +142,33 @@ export default function Navigation() {
               </Link>
             )
           })}
+
+          {isAdmin && (
+            <div className="pt-2 border-t border-white/5 mt-2">
+              <Link
+                to="/access-management"
+                className={clsx(
+                  "relative flex items-center gap-4 px-4 py-2.5 rounded-md transition-all duration-300 group",
+                  location.pathname === '/access-management' ? "text-secondary font-extrabold" : "text-white/40 hover:text-white"
+                )}
+              >
+                <ShieldCheck className={clsx("w-5 h-5 shrink-0", location.pathname === '/access-management' && "drop-shadow-[0_0_8px_rgba(78,222,163,0.5)]")} />
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-bold text-sm tracking-wide">Gestão de Acessos</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/30">
+                    ADMIN
+                  </span>
+                </div>
+                
+                {location.pathname === '/access-management' && (
+                  <motion.div
+                    layoutId="nav-active"
+                    className="absolute inset-0 bg-secondary/10 rounded-md -z-10 border border-secondary/20"
+                  />
+                )}
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Month/Year Selector */}
@@ -148,12 +209,19 @@ export default function Navigation() {
 
         {/* Footer */}
         <div className="mt-auto space-y-2 shrink-0">
-          <div className="flex items-center gap-4 px-4 py-3 rounded-lg bg-surface-container-low border border-white/5 mx-1">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-container-low border border-white/5 mx-1">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shrink-0 shadow-neon-primary">
               <User className="w-5 h-5" />
             </div>
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-white truncate">{profile?.display_name || 'Usuário'}</p>
+            <div className="overflow-hidden flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-bold text-white truncate">{profile?.display_name || 'Usuário'}</p>
+                {profile?.role === 'admin' && (
+                  <span className="text-[8px] font-black text-secondary bg-secondary/15 px-1 py-0.2 rounded border border-secondary/30 shrink-0">
+                    ADM
+                  </span>
+                )}
+              </div>
               <p className="text-[10px] font-bold text-white/30 truncate uppercase tracking-tighter">
                 {profile?.email}
               </p>
@@ -192,13 +260,32 @@ export default function Navigation() {
           <ChevronDown className="w-3 h-3 text-white/40" />
         </button>
 
-        {/* User avatar / logout */}
-        <button
-          onClick={handleLogout}
-          className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/20"
-        >
-          <User className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Admin link on mobile header */}
+          {profile?.role === 'admin' && (
+            <Link
+              to="/access-management"
+              className={clsx(
+                "w-8 h-8 rounded-full flex items-center justify-center border transition-all",
+                location.pathname === '/access-management'
+                  ? "bg-secondary/20 border-secondary text-secondary shadow-neon-secondary"
+                  : "bg-surface-container-low border-white/10 text-white/50 hover:text-secondary"
+              )}
+              title="Gestão de Acessos"
+            >
+              <ShieldCheck className="w-4 h-4" />
+            </Link>
+          )}
+
+          {/* User avatar / logout */}
+          <button
+            onClick={handleLogout}
+            className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/20"
+            title="Desconectar"
+          >
+            <User className="w-4 h-4" />
+          </button>
+        </div>
       </header>
 
       {/* ─── MOBILE CALENDAR SHEET ─── */}

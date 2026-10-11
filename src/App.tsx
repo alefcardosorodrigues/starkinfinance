@@ -15,7 +15,9 @@ import FixedExpenses from '@/features/expenses/pages/FixedExpenses'
 import Installments from '@/features/installments/pages/Installments'
 import Categories from '@/features/categories/pages/Categories'
 import VariableExpenses from '@/features/expenses/pages/VariableExpenses'
+import AccessManagement from '@/features/access-management/pages/AccessManagement'
 import Navigation from '@/components/layout/Navigation'
+import { useQuery } from '@tanstack/react-query'
 
 const Spinner = () => (
   <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -26,6 +28,21 @@ const Spinner = () => (
 function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      return data
+    },
+    enabled: !!session,
+  })
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -83,6 +100,10 @@ function App() {
           <Route path="/fixed-expenses" element={<FixedExpenses />} />
           <Route path="/installments" element={<Installments />} />
           <Route path="/categories" element={<Categories />} />
+          <Route 
+            path="/access-management" 
+            element={profile?.role === 'admin' ? <AccessManagement /> : <Navigate to="/dashboard" replace />} 
+          />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
